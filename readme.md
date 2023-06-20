@@ -17,12 +17,31 @@ GRDN is an application that allows users to optimize a garden and its plant beds
 
 ## Background
 info
+<br>
+<br>
+![app1]("asset/readme1.png")
+<br>
+<br>
+![app2]("asset/readme2.png")
+<br>
+<br>
+![app3]("asset/readme3.png")
+<br>
+<br>
+![app4]("asset/readme4.png")
+<br>
+<br>
+![app5]("asset/readme5.png")
+<br>
+<br>
 
 ## Setup
 - setup conda environment 
   >*conda create --name=GRDN_env*
 - install dependencies
   >*pip install -r requirements.txt*
+- establish env vars for openai key
+  >**COMING SOON- to be added shortly**
 
 ## Running App
 - navigate to ...GRDN/src
