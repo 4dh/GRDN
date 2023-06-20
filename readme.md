@@ -19,19 +19,19 @@ GRDN is an application that allows users to optimize a garden and its plant beds
 info
 <br>
 <br>
-![app1]("asset/readme1.png")
+![app1]("src/assets/readme1.png")
 <br>
 <br>
-![app2]("asset/readme2.png")
+![app2]("src/assets/readme2.png")
 <br>
 <br>
-![app3]("asset/readme3.png")
+![app3]("src/assets/readme3.png")
 <br>
 <br>
-![app4]("asset/readme4.png")
+![app4]("src/assets/readme4.png")
 <br>
 <br>
-![app5]("asset/readme5.png")
+![app5]("src/assets/readme5.png")
 <br>
 <br>
 
