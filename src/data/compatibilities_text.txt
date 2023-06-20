@@ -1,0 +1,938 @@
+Apple Companions:[
+Marigolds
+Garlic
+Lemon Balm
+Chives
+Leeks
+Nasturtium
+Clover
+Daffodils
+Comfrey]
+Apple Antagonists:[
+Grass
+Potato
+Walnut]
+
+Apricot Companions:[
+Basil
+Nasturtiums
+Sunflower]
+Apricot Antagonists:[
+Grass
+Tomato
+Peppers]
+
+Asparagus Companions:[
+Basil
+Parsley
+Tomato
+Dill
+Coriander
+Comfrey
+Nasturtiums]
+Asparagus Antagonists:[
+Onion
+Potato
+Gladiolas
+Garlic]
+
+Basil Companions:[
+Chamomile
+Anise
+Tomato
+Pepper
+Oregano
+Asparagus
+Grape Vine
+Petunias]
+Basil Antagonists:[
+Rue]
+
+Bean Companions:[
+Beets
+Cucumbers
+Carrots
+Lettuce
+Okra
+Potato
+Spinach
+Dill
+Cabbage
+Chard
+Eggplant
+Peas
+Broccoli
+Cauliflower
+Corn
+Grape Vine
+Savory
+Borage
+Marigold
+Radish
+Mint
+Rosemary
+Onion
+Squash]
+Bean Antagonists:[
+Tomatoes
+Peppers
+Alliums]
+
+Broad Bean Companions:[
+Cabbage
+Corn
+Lettuce]
+Broad Bean Antagonists:[
+Garlic
+Onion
+Chive
+Shallot
+Fennel
+Sunflowers]
+
+Bush Bean Companions:[
+Celery
+Strawberry
+Cucumber
+Soybeans
+Grains
+Beets
+Cabbage
+Carrot
+Cauliflower
+Corn
+Marigolds
+Potato
+Savory]
+Bush Bean Antagonists:[
+Soybean
+Alfalfa
+Fennel
+Garlic
+Leeks
+Onion
+Shallot]
+
+Climbing Bean Companions:[
+Cabbage
+Corn
+Radish
+Marigold
+Potato]
+Climbing Bean Antagonists:[
+Beet
+Sunflower
+Fennel
+Broccoli
+Cauliflower
+Kohlrabi
+Garlic
+Onion
+Shallot
+Leeks]
+
+Beet Companions:[
+Lettuce
+Garlic
+Kohlrabi
+Onion
+Shallot
+Broccoli
+Cauliflower
+Brussels Sprouts
+Beans (bush)
+Swiss Chard
+Cabbage
+Mint]
+Beet Antagonists:[
+Climbing Beans
+Tomato
+Mustard]
+
+Borage Companions:[
+Strawberry
+Tomato
+Squash
+Beans (all)
+Cucumber
+Fruit Trees
+Cabbage]
+Borage Antagonists:[
+None]
+
+Broccoli Companions:[
+Beet
+Lettuce
+Turnip
+Dill
+Mustard
+Onion
+Tomato
+Chamomile
+Carrot
+Marigold
+Mint
+Nasturtiums
+Rosemary
+Thyme
+Sage]
+Broccoli Antagonists:[
+Strawberry
+Peppers
+Climbing Beans]
+
+
+Brussels Sprout Companions:[
+Sage
+Thyme
+Beans (all)
+Beets
+Carrot
+Chamomile
+Dill
+Marigolds
+Mint
+Onion
+Nasturtiums
+Rosemary
+Brussels Sprout Antagonists:[
+Strawberries]
+
+Cabbage Companions:[
+Beans (all)
+Chamomile
+Tomato
+Celery
+Marigolds
+Nasturtiums
+Dill
+Coriander
+Onion
+Beets
+Mint
+Rosemary
+Sage
+Thyme
+Lettuce
+Garlic
+Broccoli
+Brussels Sprouts
+Swiss Chard
+Spinach]
+Cabbage Antagonists:[
+Grape Vine
+Rue
+Strawberry]
+
+Cantaloupe Companions:[
+Chamomile
+Savory
+Corn]
+Cantaloupe Antagonists:[
+None]
+
+Chamomile Companions:[
+Cauliflower
+Broccoli
+Onion
+Cabbage
+Cucumber
+Most Herbs]
+Chamomile Antagonists:[
+Mint]
+
+Carrot Companions:[
+Rosemary
+Onion
+Lettuce
+Garlic
+Shallot
+Chive
+Tomato
+Beans (all)
+Leek
+Rosemary
+Sage
+Peas]
+Carrot Antagonists:[
+Dill
+Parsnip
+Radish]
+
+Cauliflower Companions:[
+Spinach
+Sunflower
+Peas
+Beans (all)
+Broccoli
+Celery
+Marigold
+Cabbage
+Swiss Chard
+Tomato
+Brussels Sprouts]
+Cauliflower Antagonists:[
+Rue
+Strawberry]
+
+Celery Companions:[
+Tomato
+Bush Beans
+Cauliflower
+Broccoli
+Cauliflower
+Cabbage]
+Celery Antagonists:[
+Corn
+Potato
+Parsnip]
+
+Cherry Companions:[
+Alliums
+Marigold
+Spinach]
+Cherry Antagonists:[
+Grass
+Potato]
+
+Chervil Companions:[
+Broccoli
+Lettuce
+Radish]
+Chervil Antagonists:[
+None]
+
+Chive Companions:[
+Apple
+Carrot
+Rose
+Grape Vine
+Tomato
+Broccoli
+Cabbage
+Mustard
+Cauliflower
+Strawberry]
+Chive Antagonists:[
+Beans (all)
+Peas]
+
+Coriander Companions:[
+Cabbage
+Spinach
+Lettuce
+Tomato
+Anise
+Beans (all)
+Peas]
+Coriander Antagonists:[
+Dill]
+
+Corn Companions:[
+Squash
+Climbing Beans
+Potato
+Soybeans
+Cucumber
+Sunflower
+Dill
+Peas
+Parsley
+Potato
+Mustard
+Pumpkin
+Melons]
+Corn Antagonists:[
+Tomato
+Celery]
+
+Cucumber Companions:[
+Kohlrabi
+Radish
+Sunflower
+Beans (all)
+Lettuce
+Nasturtiums
+Chamomile
+Marigold
+Peas
+Beets
+Carrot
+Dill
+Onion
+Garlic
+Celery
+Spinach
+Corn
+Cabbage]
+Cucumber Antagonists:[
+Potato
+Sage and many other herbs]
+
+Dill Companions:[
+Broccoli
+Cabbage
+Fennel
+Beans (all)
+Corn
+Radish
+Sunflower
+Lettuce
+Onion
+Eggplant
+Cucumber]
+Dill Antagonists:[
+Coriander
+Carrot
+Tomato]
+
+Fennel Companions:[
+Dill
+Eggplant
+Basil]
+Fennel Antagonists:[
+Tomato
+Coriander
+Beans (most)]
+
+Marigold Companions:[
+Most Plants
+Tomato
+Pepper
+Apricot
+Beans (all)
+Rose
+Cucumber
+Squash
+Potato
+Zucchini
+Broccoli
+Cauliflower
+Cabbage
+Onion
+Garlic
+Chive
+Shallot]
+Marigold Antagonists:[
+None]
+
+Fruit Tree Companions:[
+Onion
+Borage
+Nasturtiums
+Garlic
+Chive
+Shallot
+Tansy
+Marigold
+Lemon Balm
+Mustard
+Marjoram
+Dandelions]
+Fruit Tree Antagonists:[
+Grass]
+
+Garlic Companions:[
+Cucumber
+Rose
+Tomato
+Broccoli
+Beets
+Peas
+Cabbage
+Lettuce
+Tarragon
+Celery
+Potato
+Fruit Trees]
+Garlic Antagonists:[
+Peas
+Grape Vine
+Beans (all)]
+
+Grape Vine Companions:[
+Basil
+Beans (all)
+Peas
+Chives
+Mustard
+Oregano
+Peas
+Geraniums
+Blackberries]
+Grape Vine Antagonists:[
+Cabbage
+Garlic
+Radish]
+
+Kale Companions:[
+Beets
+Celery
+Spinach
+Marigold
+Cabbage
+Cauliflower
+Nasturtiums
+Aromatic Herbs]
+Kale Antagonists:[
+Grape Vine
+Beans (all)
+Strawberry]
+
+Kohlrabi Companions:[
+Cucumber
+Thyme
+Sage
+Cabbage
+Cauliflower
+Beets
+Onion
+Aromatic Herbs]
+Kohlrabi Antagonists:[
+Climbing Bean
+Pepper
+Tomato
+Fennel]
+
+Lettuce Companions:[
+Broccoli
+Beans (Bush & Climbing)
+Carrot
+Beets
+Onion
+Radish
+Kohlrabi
+Dill
+Cucumber
+Strawberry
+Thyme
+Coriander
+Nasturtiums
+Parsnips]
+Lettuce Antagonists:[
+Cabbage
+Parsley
+Celery]
+
+Marjoram Companions:[
+All Plants
+Squash
+Beans (all)
+Eggplant]
+Marjoram Antagonists:[
+None]
+
+Mustard Companions:[
+Mulberry
+Grape Vine
+Fruit Trees
+Beans (all)
+Broccoli
+Cabbage
+Radish
+Cauliflower
+Brussels Sprouts
+Turnip
+Alfalfa]
+Mustard Antagonists:[
+None]
+
+Mulberry Companions:[
+Alliums
+Marigold
+Grass]
+Mulberry Antagonists:[
+None]
+
+Nasturtium Companions:[
+Apple
+Beans (all)
+Cabbage
+Squash
+Tomato
+Fruit Trees
+Broccoli
+Brussels Sprouts
+Radish
+Cucumber
+Pumpkin
+Potato]
+Nasturtium Antagonists:[
+Cauliflower]
+
+Onion Companions:[
+Carrot
+Strawberry
+Chamomile
+Beets
+Cabbage
+Cauliflower
+Lettuce
+Parsnip
+Pepper
+Cucumber
+Dill
+Marigold
+Tomato
+Savory
+Broccoli]
+Onion Antagonists:[
+Peas
+Lentils
+Asparagus]
+
+Oregano Companions:[
+All Plants
+Cabbage
+Cauliflower
+Cucumber]
+Oregano Antagonists:[
+None]
+
+Parsley Companions:[
+Asparagus
+Rose
+Tomato
+Corn
+Apple]
+Parsley Antagonists:[
+Onion
+Garlic
+Chive
+Shallot
+Lettuce
+Mint]
+
+Parsnip Companions:[
+Bush Beans
+Pepper
+Potato
+Radish
+Fruit Trees]
+Parsnip Antagonists:[
+Carrot
+Celery]
+
+Pea Companions:[
+Corn
+Carrot
+Eggplant
+Turnip
+Cauliflower
+Garlic
+Broccoli
+Brussels Sprouts
+Mint
+Cucumber
+Beans (all)]
+Pea Antagonists:[
+Chive
+Potato
+Onion]
+
+Pepper Companions:[
+Basil
+Tomato
+Sunflower
+Carrot
+Eggplant
+Onion
+Parsley
+Okra
+Marjoram
+Mustard
+Geraniums
+Petunias]
+Pepper Antagonists:[
+Beans (all)
+Kale
+Apricot
+Fennel
+Kohlrabi
+Brussels Sprouts]
+
+Pennyroyal top:[
+Pennyroyal Companions
+Cabbage
+Kale
+Cauliflower]
+Pennyroyal Antagonists:[
+None]
+
+Potato Companions:[
+Beans (all)
+Horseradish
+Thyme
+Basil
+Cabbage
+Corn
+Eggplant
+Marigold
+Peas
+Broccoli
+Corn
+Onion
+Garlic
+Clover]
+Potato Antagonists:[
+Carrot
+Pumpkin
+Tomato
+Cucumber
+Sunflower
+Squash
+Apple
+Cherry
+Raspberry
+Walnut]
+
+Pumpkin Companions:[
+Corn
+Squash
+Nasturtium
+Beans (all)
+Oregano
+Radish]
+Pumpkin Antagonists:[
+Potato]
+
+Radish Companions:[
+Chervil
+Lettuce
+Nasturtium
+Squash
+Eggplant
+Cucumber
+Peas
+Beans (all)
+Melons]
+Radish Antagonists:[
+Grape Vine
+Brussels Sprout
+Turnip]
+
+Rosemary Companions:[
+Cabbage
+Beans (all)
+Sage
+Carrot
+Sage
+Broccoli]
+Rosemary Antagonists:[
+Tomato]
+
+Rose Companions:[
+Garlic
+Rose
+Parsley
+Chive
+Marigold]
+Rose Antagonists:[
+None]
+
+Rue top:[
+Rue Companions
+Fruit Trees
+Lavender
+Carrot]
+Rue Antagonists:[
+Basil
+Broccoli
+Cabbage]
+
+Sage Companions:[
+Broccoli
+Cauliflower
+Carrot
+Rosemary
+Cabbage
+Brussels Sprouts
+Tomato
+Strawberry
+Marjoram
+Beans (all)]
+Sage Antagonists:[
+Cucumber
+Onion
+Rue]
+
+Savory Companions:[
+Beans (all)
+Onion
+Melon]
+Savory Antagonists:[
+None]
+
+Silverbeet Companions:[
+Beets
+Cherry
+Lavender]
+Silverbeet Antagonists:[
+Basil]
+
+Soybean Companions:[
+Corn
+Sunflower
+Asparagus
+Potato]
+Soybean Antagonists:[
+Beans (all)
+Onions
+Garlic]
+
+Spinach Companions:[
+Strawberry
+Peas
+Beans (all)
+Celery
+Cauliflower
+Eggplant
+Peas
+Beans
+Broccoli]
+Spinach Antagonists:[
+None]
+
+Squash Companions:[
+Borage
+Corn
+Beans (all)
+Okra
+Radish
+Marigold
+Nasturtium
+Tansy]
+Squash Antagonists:[
+Potato]
+
+Strawberry Companions:[
+Borage
+Spinach
+Thyme
+Bush Beans
+Onion
+Lettuce
+Sage]
+Strawberry Antagonists:[
+Cabbage
+Broccoli
+Cauliflower
+Tomato
+Potato
+Eggplant
+Pepper
+Melons
+Okra
+Mint
+Rose]
+
+Stinging Nettle Companions:[
+Chamomile
+Tomato
+Marjoram
+Mint
+Broccoli
+Sage]
+Stinging Nettle Antagonists:[
+None]
+
+Sunflower Companions:[
+Pepper
+Corn
+Soybeans
+Cucumber
+Tomato
+Swan Plant]
+Sunflower Antagonists:[
+Climbing Beans
+Garlic
+Potato]
+
+Swiss Chard Companions:[
+Bush Beans
+Kohlrabi
+Onion
+Broccoli
+Brussels Sprouts
+Cabbage
+Cauliflower
+Radish
+Turnip]
+Swiss Chard Antagonists:[
+Climbing Beans]
+
+Tarragon Companions:[
+All Plants
+Eggplant
+Tomato
+Pepper]
+Tarragon Antagonists:[
+None]
+
+Thyme Companions:[
+All Plants
+Cabbage
+Potato
+Brussels Sprout
+Eggplant
+Strawberry
+Tomato]
+Thyme Antagonists:[
+None]
+
+Tomato Companions:[
+Aspargus
+Basil
+Garlic
+Beans (all)
+Oregano
+Rose
+Brocolli
+Cabbage
+Celery
+Pepper
+Marigold
+Borage
+Parsley
+Coriander
+Chive
+Carrot
+Eggplant
+Sage
+Thyme
+Mint
+Mustard
+Rosemary
+Stinging Nettle]
+Tomato Antagonists:[
+Corn
+Dill
+Potato
+Fennel
+Kohlrabi
+Walnut]
+
+Turnip Companions:[
+Broccoli
+Peas
+Cabbage]
+Turnip Antagonists:[
+Potato
+Radish
+Carrot
+Mustard]
+
+Yarrow Companions:[
+Most Plants (especially aromatic)
+Apricot
+Chervil
+Grape Vine]
+Yarrow Antagonists:[
+None]
+
+Zucchini Companions:[
+Corn
+Marjoram
+Parsnip]
+Zucchini Antagonists:[
+Potato]
