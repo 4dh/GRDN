@@ -49,6 +49,24 @@ info
   >*conda activate GRDN_env*
 - run app
   >*python -m streamlit run app.py*
+  
+## Software, data, and libraries used
+### Libraries and Software
+- Python
+- streamlit
+- openai
+- plotly
+- pandas
+- numpy
+- PIL
+- langchain
+- streamlit_chat
+- github copilot
+- chatGPT
+- GPT family of models
+
+### Data sources in addition to what GPT was trained on: https://waldenlabs.com/the-ultimate-companion-planting-guide-chart/
+### avatars from: https://www.flaticon.com/free-icons/bot
 
 
 
