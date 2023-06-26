@@ -16,7 +16,7 @@ from backend.optimization_algo import *
 from frontend.visualizations import *
 
 # setup keys and api info
-file_path = 'C:/Users/dheym/OneDrive/Documents/api_keys/openai_api_keys.txt'
+file_path = '/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/api_keys/openai_api_keys.txt'
 with open(file_path, 'r') as file:
     OPENAI_API_KEY = file.read()
 
