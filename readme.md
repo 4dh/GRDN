@@ -5,7 +5,7 @@
 <br/>
 author: Danielle Heymann
 <br/>
-contact: <dheymann314@gmail.com>
+contact: dheymann314@gmail.com
 <br/>
 last updated: 06/20/2023
 <br/>
