@@ -23,6 +23,8 @@ st.session_state.raw_plant_compatibility = st.session_state.raw_plant_compatibil
 # get list of plants
 st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tolist()
 
+
+
 # setup keys and api info
 file_path = '/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/api_keys/openai_api_keys.txt'
 with open(file_path, 'r') as file:
@@ -40,60 +42,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-
-import streamlit as st
-from streamlit_agraph import agraph, Node, Edge, Config
-
-def plot_compatibility_with_agraph(plants, compatibility_matrix):
-    # Create nodes and edges for the graph
-    nodes = []
-    edges = []
-
-    # Function to get the image URL for a plant
-    def get_image_url(plant_name):
-        # Replace with your logic to get the image URL
-        index = plants.index(plant_name)
-        cwd = os.getcwd()
-        image_path = os.path.join(cwd, f"assets/plant_images/plant_{index}.png")
-        image_path = "https://phantom-marca.unidadeditorial.es/87e06bac29cef3dd2afe0edc205ac160/resize/1320/f/webp/assets/multimedia/imagenes/2023/06/05/16859534914962.png"
-        print(image_path)
-        return image_path
-
-    # Create nodes with images
-    for plant in plants:
-        nodes.append(Node(id=plant, 
-                          label=plant, 
-                          size=25, 
-                          shape="circularImage",
-                          image=get_image_url(plant)))
-
-    # Create edges based on compatibility
-    for i in range(len(plants)):
-        for j in range(i + 1, len(plants)):
-            if compatibility_matrix[i][j] != 0:
-                color = 'green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred'
-                edges.append(Edge(source=plants[i], target=plants[j], color=color))
-
-    # Configuration for the graph
-    config = Config(width=750,
-                    height=950,
-                    directed=False, 
-                    physics=True, 
-                    hierarchical=False)
-
-    # Render the graph using streamlit-agraph
-    return_value = agraph(nodes=nodes, 
-                        edges=edges, 
-                        config=config)
-    
-    
-# Example usage in a Streamlit app
-plants = ["Marigold", "Rose", "Lavender"]
-compatibility_matrix = [[0, 1, -1], [1, 0, 1], [-1, 1, 0]]  # Example compatibility matrix
-plot_compatibility_with_agraph(plants, compatibility_matrix)
-
-
 
 # Function to display chat message with an icon
 def chat_message(message, is_user=False):
@@ -196,74 +144,107 @@ if page == "Garden Optimization":
                 print("____________________")
                 print("start of session")
 
-                col1, col2, col3= st.columns([1,1,1])
+                col1a, col2a= st.columns([1,2])
                 enable_max_species = False
                 enable_min_species = False
 
                 
                 # make a form to get the plant list from the user
-                with col1:
+                with col1a:
                     with st.form(key = "plant_list_form"):
                         input_plants_raw = st.multiselect('plants', st.session_state.plant_list)
                         submit_button = st.form_submit_button(label='Submit Plant List')
                 if submit_button:
                     st.session_state['input_plants_raw'] = input_plants_raw
+                    st.session_state.submitted_plant_list = True
 
                 # add in some vertical space
                 add_vertical_space(1)
 
-                col1, col2, col3= st.columns([1,1,1])
-                if 'input_plants_raw' in st.session_state:
-                    print("BP1")
-                    # first question is what plants would you like to plant
-                    plants_response = st.session_state.input_plants_raw
+                with col2a:
+                    col1, col2, col3= st.columns([1,1,1])
+                    if 'input_plants_raw' in st.session_state:
+                        print("BP1")
+                        # first question is what plants would you like to plant
+                        plants_response = st.session_state.input_plants_raw
 
-                    # Initialize session state variables if they don't exist
-                    if 'n_plant_beds' not in st.session_state:
-                        st.session_state['n_plant_beds'] = 1
+                        # Initialize session state variables if they don't exist
+                        if 'n_plant_beds' not in st.session_state:
+                            st.session_state['n_plant_beds'] = 1
 
-                    if 'min_species' not in st.session_state:
-                        st.session_state['min_species'] = 1
+                        if 'min_species' not in st.session_state:
+                            st.session_state['min_species'] = 1
 
-                    if 'max_species' not in st.session_state:
-                        st.session_state['max_species'] = 2
+                        if 'max_species' not in st.session_state:
+                            st.session_state['max_species'] = 2
 
-                    # Number of plant beds input
-                    with col1:
-                        n_plant_beds = st.number_input('Number of plant beds', min_value=1, max_value=20, value=st.session_state.n_plant_beds, step=1)
-                        st.session_state.n_plant_beds = n_plant_beds
-                    with col2:
-                        # Minimum species per plant bed input
-                        min_species = st.number_input('Minimum number of species per plant bed', 
-                                                    min_value=1, 
-                                                    max_value=len(st.session_state.input_plants_raw), 
-                                                    value=st.session_state.min_species, 
-                                                    step=1)
-                        st.session_state.min_species = min_species
+                        # Number of plant beds input
+                        with col1:
+                            n_plant_beds = st.number_input('Number of plant beds', min_value=1, max_value=20, value=st.session_state.n_plant_beds, step=1)
+                            st.session_state.n_plant_beds = n_plant_beds
+                        with col2:
+                            # Minimum species per plant bed input
+                            min_species = st.number_input('Minimum number of species per plant bed', 
+                                                        min_value=1, 
+                                                        max_value=len(st.session_state.input_plants_raw), 
+                                                        value=st.session_state.min_species, 
+                                                        step=1)
+                            st.session_state.min_species = min_species
 
-                        # Maximum species per plant bed input
-                        # It will be enabled only if min_species is set
-                        enable_max_species = st.session_state.min_species > 0
-                    with col3:
-                        max_species = st.number_input('Maximum number of species per plant bed', 
-                                                    min_value=st.session_state.min_species, 
-                                                    max_value=len(st.session_state.input_plants_raw), 
-                                                    value=max(st.session_state.min_species, st.session_state.max_species), 
-                                                    step=1, 
-                                                    disabled=not enable_max_species)
-                        if enable_max_species:
-                            st.session_state.max_species = max_species
+                            # Maximum species per plant bed input
+                            # It will be enabled only if min_species is set
+                            enable_max_species = st.session_state.min_species > 0
+                        with col3:
+                            max_species = st.number_input('Maximum number of species per plant bed', 
+                                                        min_value=st.session_state.min_species, 
+                                                        max_value=len(st.session_state.input_plants_raw), 
+                                                        value=max(st.session_state.min_species, st.session_state.max_species), 
+                                                        step=1, 
+                                                        disabled=not enable_max_species)
+                            if enable_max_species:
+                                st.session_state.max_species = max_species
 
-                            # extract the compatibility matrix from the user's input
-                            if 'extracted_mat' not in st.session_state:
-                                if st.button(' continue'):
+                    # extract the compatibility matrix from the user's input
+                    if 'extracted_mat' not in st.session_state:
+                        valid = False
+                        if st.session_state.submitted_plant_list:
+                            # check if the user's input is valid
+                            # min species per bed must be less than or equal to max species per bed
+                            if (st.session_state.min_species <= st.session_state.max_species
+                                ) and (
+                                # max species per bed must be less than or equal to the number of plants 
+                                st.session_state.max_species <= len(st.session_state.input_plants_raw) 
+                                ) and (
+                                # max species per bed must be greater than or equal to the min species per bed
+                                st.session_state.max_species >= st.session_state.min_species
+                                ) and (
+                                # min species per bed must be less than or equal to the number of plants
+                                st.session_state.min_species <= len(st.session_state.input_plants_raw)
+                                ) and (
+                                # number of plant beds multiplied by min species per bed must be less than or equal to the number of plants
+                                len(st.session_state.input_plants_raw) >= st.session_state.n_plant_beds * st.session_state.min_species
+                                ) and (
+                                # number of plant beds multiplied by max species per bed must be greater than or equal to the number of plants
+                                len(st.session_state.input_plants_raw) <= st.session_state.n_plant_beds * st.session_state.max_species
+                                ):
+                                valid = True  
+                            else:
+                                # add a warning message
+                                st.warning('Please enter valid parameters. The minimum number of species per plant bed must be less than or equal to the maximum number of species per plant bed. The maximum number of species per plant bed must be less than or equal to the number of plants. The maximum number of species per plant bed must be greater than or equal to the minimum number of species per plant bed. The minimum number of species per plant bed must be less than or equal to the number of plants. The number of plant beds multiplied by the minimum number of species per plant bed must be less than or equal to the number of plants. The number of plant beds multiplied by the maximum number of species per plant bed must be greater than or equal to the number of plants.')
+
+                            if valid:
+                                # add in some vertical space
+                                add_vertical_space(2)
+                                if st.button('Generate Companion Plant Compatibility Matrix'):
                                     with st.spinner('generating companion plant compatibility matrix...'):
                                         st.session_state['generating_mat'] = True
                                         # now get compatibility matrix for companion planting
                                         time.sleep(1)
-                                        extracted_mat = get_compatibility_matrix_2(st.session_state.input_plants_raw)
+                                        extracted_mat, full_mat, plant_index_mapping= get_compatibility_matrix_2(st.session_state.input_plants_raw)
                                         print(extracted_mat)
                                         st.session_state.extracted_mat = extracted_mat
+                                        st.session_state.full_mat = full_mat
+                                        st.session_state.plant_index_mapping = plant_index_mapping
     # add in some vertical space
     add_vertical_space(4)
 
@@ -282,7 +263,7 @@ if page == "Garden Optimization":
                     st.write(st.session_state.extracted_mat)
             with col1:
                 st.write("Here is a network visualization of your companion plant compatibility matrix. It is color coded to show which plants are companions (green), antagonists (violetred), or neutral (grey).")
-                plot_compatibility(st.session_state.input_plants_raw, st.session_state.extracted_mat)
+                plot_compatibility_with_agraph(st.session_state.input_plants_raw, st.session_state.full_mat)
                 st.session_state['got_mat'] = True
         
         if 'got_mat' in st.session_state:
@@ -305,23 +286,26 @@ if page == "Garden Optimization":
                             st.markdown("- **Tournament Size**: A larger tournament size promotes stronger selection pressure and can lead to faster convergence, but it may also increase the risk of premature convergence.")
                             st.markdown("- **Crossover Rate**: A higher crossover rate increases the exploration capability by creating diverse offspring, potentially improving the algorithm's ability to escape local optima.")
                             st.markdown("- **Mutation Rate**: Mutation introduces random changes in individuals, helping to maintain diversity in the population and preventing premature convergence.")
-
+                            # seed population rate
+                            st.markdown("- **Seed Population Rate**: The seed population rate is the percentage of the population that is generated based on the LLM's interpretation of compatibility. The remaining percentage of the population is generated randomly. A higher seed population rate increases the likelihood that the genetic algorithm will converge towards a solution that is compatible.")
                     # Run the Genetic Algorithm
                     with col1:
                         st.subheader("Genetic Algorithm Parameters")
                         st.write("These parameters control the behavior of the genetic algorithm.")
 
                         # Genetic Algorithm parameters
-                        st.session_state.population_size = st.slider("Population Size", min_value=10, max_value=1000, value=50,
+                        st.session_state.population_size = st.slider("Population Size", min_value=500, max_value=3000, value=550,
                                                     help="The number of individuals in each generation of the genetic algorithm.")
-                        st.session_state.num_generations = st.slider("Number of Generations", min_value=10, max_value=1000, value=100,
+                        st.session_state.num_generations = st.slider("Number of Generations", min_value=100, max_value=1500, value=500,
                                                     help="The total number of generations to evolve through.")
-                        st.session_state.tournament_size = st.slider("Tournament Size", min_value=2, max_value=10, value=3,
+                        st.session_state.tournament_size = st.slider("Tournament Size", min_value=5, max_value=20, value=10,
                                                     help="The number of individuals competing in each tournament selection round.")
                         st.session_state.crossover_rate = st.slider("Crossover Rate", min_value=0.1, max_value=1.0, step=0.1, value=0.8,
                                                 help="The probability of two individuals undergoing crossover to create offspring.")
-                        st.session_state.mutation_rate = st.slider("Mutation Rate", min_value=0.01, max_value=0.1, step=0.01, value=0.05,
+                        st.session_state.mutation_rate = st.slider("Mutation Rate", min_value=0.01, max_value=0.9, step=0.01, value=0.3,
                                                 help="The probability of an individual undergoing mutation.")
+                        st.session_state.seed_population_rate = st.slider("Seed Population Rate", min_value=0.0, max_value=.15, step=0.1, value=0.10, 
+                                                                          help="The percentage of the population that is generated based on the LLM's interpretation of compatibility. The remaining percentage of the population is generated randomly.")
                         
                         # 
                         # Run the genetic algorithm

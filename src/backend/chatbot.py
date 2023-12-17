@@ -132,13 +132,67 @@ plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
 
 def get_compatibility_matrix_2(plant_list):
 
-    # subset the matrix to only include the plants in the user's list
+    # Subset the matrix to only include the plants in the user's list
     plant_compatibility = st.session_state.raw_plant_compatibility.loc[plant_list, plant_list]
 
-    # get list of plants
-    plant_list_subset = plant_compatibility.index.tolist()
-    print(plant_list_subset, plant_list)
+    # full matrix
+    full_mat = st.session_state.raw_plant_compatibility.to_numpy()
+
+    # Convert the DataFrame to a NumPy array
+    plant_compatibility_matrix = plant_compatibility.to_numpy()
+
+    # Get the list of original indices (from the DataFrame)
+    original_indices = plant_compatibility.index.tolist()
     
-    plant_compatibility  = plant_compatibility .to_numpy()
-    #return the matrix
-    return plant_compatibility
+    # Create a dictionary to map plant names to their original indices
+    plant_index_mapping = {plant: index for index, plant in enumerate(original_indices)}
+
+    # Return the matrix and the plant-index mapping
+    return plant_compatibility_matrix, full_mat, plant_index_mapping
+
+# get plant groupings from LLM
+def get_seed_groupings_from_LLM():
+    chat = ChatOpenAI(temperature=.1)
+    template="You are a helpful assistant that only outputs python lists of lists of lists of plants."
+    # make sure output is strictly and only a list of lists for one grouping
+    text ='''I am working on a gardening project and need to optimally group a set of plants based on their compatibility. Below is the compatibility matrix for the plants, where each value represents how well two plants grow together (positive values indicate good compatibility, negative values indicate poor compatibility). I also have specific constraints for planting: there are a certain number of plant beds (n_plant_beds), each bed can have a minimum of min_species species and a maximum of max_species species. Given these constraints, please suggest several groupings of these plants into n_plant_beds beds, optimizing for overall compatibility.
+
+        Number of Plant Beds: ''' + str(st.session_state.n_plant_beds) + '''
+        Minimum Species per Bed: ''' + str(st.session_state.min_species) + '''
+        Maximum Species per Bed: ''' + str(st.session_state.max_species) + '''
+        Plants and Compatibility Matrix:'''+ str(st.session_state.raw_plant_compatibility.loc[st.session_state.input_plants_raw, st.session_state.input_plants_raw]) + '''
+
+        Please provide a grouping that maximize positive interactions within each bed and minimize negative interactions, adhering to the specified bed constraints. Return a list of lists  where each list represents an iteration of plant groupings. Each list within the list represents a bed, and each list within the bed represents the plants in that bed.
+        sample output: [['plant1', 'plant2'] #bed1, ['plant3', 'plant4'] #bed2, ['plant1', 'plant3'] #bed3]
+        another sample output: [['plant1', 'plant2', 'plant3'] #bed1, ['plant4', 'plant5', 'plant6'] #bed2, ['plant7', 'plant8', 'plant9'] #bed3]
+        Note: the number of beds, the number of plants per bed, and the number of plants in the list may vary.
+        Note: only output a python list of lists of plants. Do not include any other text or explanation.
+
+        '''
+
+
+    plant_groupings = chat_response(template, text)
+    print(plant_groupings.content)
+
+    # try to eval the string to a list of lists
+    try:
+        plant_groupings_evaluated = eval(plant_groupings.content)
+        # check type of output
+        print(type(plant_groupings_evaluated))
+        # we expect a list of lists
+    except:
+        print("Error with parsing plant groupings")
+        # try again up to 5 times
+        for i in range(5):
+            print("Error with parsing plant groupings. Trying for attempt #" + str(i+1))
+            plant_groupings = chat_response(template, text)
+            print(plant_groupings.content)
+            # try to eval the string to a list of lists
+            try:
+                plant_groupings_evaluated = eval(plant_groupings.content)
+                break
+            except:
+                print("Error with parsing plant groupings")
+                continue
+
+    return plant_groupings_evaluated

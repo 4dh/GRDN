@@ -2,6 +2,9 @@ import random
 import numpy as np
 import streamlit as st
 
+# import all functions from src.backend.chatbot
+from backend.chatbot import *
+
 def genetic_algorithm_plants():
     # Define the compatibility matrix
     compatibility_matrix = st.session_state.extracted_mat
@@ -21,43 +24,55 @@ def genetic_algorithm_plants():
     tournament_size = st.session_state.tournament_size
     crossover_rate = st.session_state.crossover_rate
     mutation_rate = st.session_state.mutation_rate
+    seed_population_rate = st.session_state.seed_population_rate 
 
 
     def generate_initial_population():
         population = []
-        species_pool = user_plants.copy()  # Create a pool of species
-        random.shuffle(species_pool)
 
-        for _ in range(population_size):
-            grouping = []
-            species_copy = species_pool.copy()
+        # Add seed groupings to the population, validated and replaced as necessary
+        num_seeds = int(population_size * st.session_state.seed_population_rate)  # 10% of the population as seeds
+        # we generate just one seed grouping for this beta language model suggestion feature
+        seed_grouping = get_language_model_suggestions()
+        valid_seed_grouping = validate_and_replace(seed_grouping)
+        population.append(valid_seed_grouping)
 
-            # Distribute the remaining species evenly among the plant beds
-            for _ in range(num_plant_beds):
-                if not species_copy:
-                    break
 
-                num_species = min_species_per_bed
-                if len(species_copy) < min_species_per_bed:
-                    num_species = len(species_copy)
-
-                species = species_copy[:num_species]
-                grouping.append(species)
-                species_copy = species_copy[num_species:]
-
-            # Fill any remaining empty plant beds with randomly selected species
-            for _ in range(num_plant_beds - len(grouping)):
-                if not species_copy:
-                    break
-
-                num_species = 1
-                species = species_copy[:num_species]
-                grouping.append(species)
-                species_copy = species_copy[num_species:]
-
-            population.append(grouping)
+        # Fill the rest of the population with random groupings, also validated and replaced
+        while len(population) < population_size:
+            random_grouping = generate_random_grouping()
+            valid_random_grouping = validate_and_replace(random_grouping)
+            population.append(valid_random_grouping)
 
         return population
+
+
+    def generate_random_grouping():
+        random.shuffle(user_plants)
+        remaining_plants = user_plants.copy()
+        grouping = []
+
+        total_plants = len(user_plants)
+        plants_per_bed = total_plants // num_plant_beds
+        extra_plants = total_plants % num_plant_beds
+
+        for bed_index in range(num_plant_beds):
+            if bed_index < extra_plants:
+                # Distribute extra plants among the first few beds
+                num_species_in_bed = plants_per_bed + 1
+            else:
+                num_species_in_bed = plants_per_bed
+
+            # Ensure the bed size is within the min and max constraints
+            num_species_in_bed = max(min_species_per_bed, min(num_species_in_bed, max_species_per_bed))
+
+            bed = remaining_plants[:num_species_in_bed]
+            remaining_plants = remaining_plants[num_species_in_bed:]
+            grouping.append(bed)
+
+        return grouping
+
+
 
     # Perform crossover between two parents, preserving at least one occurrence of each plant
     def crossover(parent1, parent2):
@@ -104,17 +119,44 @@ def genetic_algorithm_plants():
 
         return individual
 
-    # Calculate the fitness score of a grouping
+    # Calculate the fitness score of the grouping
     def calculate_fitness(grouping):
+        positive_reward_factor = 1000  # Adjust this to increase the reward for compatible species
+        negative_penalty_factor = 2000  # Adjust this to increase the penalty for incompatible species
+
         score = 0
+        # Iterate over each plant bed
+        for bed in grouping:
+            for i in range(len(bed)):
+                for j in range(i + 1, len(bed)):
+                    species1_index = user_plants.index(bed[i])
+                    species2_index = user_plants.index(bed[j])
+
+                    # Compatibility score between two species in the same bed
+                    compatibility_score = compatibility_matrix[species1_index][species2_index]
+                    
+                    if compatibility_score > 0:
+                        # Positive reward for compatible species
+                        score += compatibility_score*positive_reward_factor
+                    elif compatibility_score < 0:
+                        # Negative penalty for incompatible species
+                        score += compatibility_score*negative_penalty_factor
+
+        # Additional scoring for separation of incompatible species between different beds
         for bed1 in range(num_plant_beds):
             for bed2 in range(bed1 + 1, num_plant_beds):
                 for species1 in grouping[bed1]:
                     for species2 in grouping[bed2]:
                         species1_index = user_plants.index(species1)
                         species2_index = user_plants.index(species2)
-                        score += compatibility_matrix[species1_index][species2_index]
+
+                        # Compatibility score between species in different beds
+                        compatibility_score = compatibility_matrix[species1_index][species2_index]
+                        if compatibility_score < 0:
+                            score += compatibility_score * negative_penalty_factor
+
         return score
+
 
     # Perform tournament selection
     def tournament_selection(population):
@@ -161,14 +203,53 @@ def genetic_algorithm_plants():
                 offspring.extend([child1, child2])
 
             population = replacement(population, offspring)
+            # Validate and replace any missing plants in the new population
+            population = [validate_and_replace(grouping) for grouping in population]
+
 
         best_grouping = max(population, key=calculate_fitness)
+        best_grouping = validate_and_replace(best_grouping)
         best_fitness = calculate_fitness(best_grouping)
         print(f"Best Grouping: {best_grouping}")
         print(f"Fitness Score: {best_fitness}")
         # st.write(f"Best Grouping: {best_grouping}")
         # st.write(f"Fitness Score: {best_fitness}")
         return best_grouping
+    
+    def validate_and_replace(grouping):
+        print("Grouping structure before validation:", grouping)
+        all_plants = set(user_plants)
+        for bed in grouping:
+            all_plants -= set(bed)
+
+        # Replace missing plants
+        for missing_plant in all_plants:
+            replaced = False
+            for bed in grouping:
+                if len(set(bed)) != len(bed):  # Check for duplicates
+                    for i, plant in enumerate(bed):
+                        if bed.count(plant) > 1:  # Found a duplicate
+                            bed[i] = missing_plant
+                            replaced = True
+                            break
+                if replaced:
+                    break
+
+            # If no duplicates were found, replace a random plant
+            if not replaced:
+                random_bed = random.choice(grouping)
+                random_bed[random.randint(0, len(random_bed) - 1)] = missing_plant
+
+        return grouping
+
+    
+    def get_language_model_suggestions():
+        # Placeholder for your implementation
+        # This should return a list of seed groupings based on the compatibility matrix
+        st.session_state.seed_groupings = get_seed_groupings_from_LLM()
+        return st.session_state.seed_groupings
+
+
     
     best_grouping = genetic_algorithm()
     return best_grouping

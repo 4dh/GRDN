@@ -3,41 +3,19 @@ import networkx as nx
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import numpy as np
+from streamlit_agraph import agraph, Node, Edge, Config
 
 def plot_compatibility(plants, compatibility_matrix, is_mini=False):
 
-    # # Create the graph
-    # G = nx.Graph()
-    # G.add_nodes_from(plants)
-    # for i in plants:
-    #     print(i)
-    #     for j in plants:
-    #         print(j)
-    #         if compatibility_matrix[i][j] == 0:
-    #             G.add_edge(plants[i], plants[j], color='dimgrey')
-    #         else:
-    #             G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
-    # create the graph again knowing that the matrix looks like this for example:
-#                     Broad Beans  Beans  Basil  Bush Beans  Climbing Beans
-# Broad Beans             0.0    0.0    0.0         0.0             0.0
-# Beans                   0.0    0.0    0.0         0.0             0.0
-# Basil                   0.0    0.0    0.0         0.0             0.0
-# Bush Beans              0.0    0.0    0.0         0.0             0.0
-# Climbing Beans          0.0    0.0    0.0         0.0             0.0
-
-    # Create the graph but don't include the diagonal. the value of the indices are the plant names
+    # Create the graph
     G = nx.Graph()
     G.add_nodes_from(plants)
     for i in range(len(plants)):
-        for j in range(len(plants)):
-            if i != j:
-                if compatibility_matrix[i][j] == 0:
-                    G.add_edge(plants[i], plants[j], color='dimgrey')
-                else:
-                    G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
-
-
-
+        for j in range(i + 1, len(plants)):
+            if compatibility_matrix[i][j] == 0:
+                G.add_edge(plants[i], plants[j], color='dimgrey')
+            else:
+                G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
 
     # Generate positions for the nodes
     pos = nx.spring_layout(G)
@@ -51,7 +29,7 @@ def plot_compatibility(plants, compatibility_matrix, is_mini=False):
         textposition='top center',
         hoverinfo='text',
         marker=dict(
-            size=20,
+            size=40,
             color='lightblue',
             line_width=2,
         )
@@ -248,4 +226,128 @@ def visualize_groupings():
             st.write("Plant List")
             st.write(groupings[i])
         with col3:
-            plot_compatibility(groupings[i], submatrix, is_mini=True)
+            plot_compatibility_with_agraph(groupings[i], submatrix, is_mini=True)
+
+
+def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
+    # Create nodes and edges for the graph
+    nodes = []
+    edges = []
+
+    # Function to get the image URL for a plant
+    def get_image_url(plant_name):
+        index = st.session_state.plant_list.index(plant_name)
+        image_path = f"https://github.com/4dh/GRDN/blob/dev/src/assets/plant_images/plant_{index}.png?raw=true"
+        print(image_path)
+        return image_path
+
+    size_n = 32 if not is_mini else 24
+    # Create nodes with images
+    for plant in plants:
+        nodes.append(Node(id=plant, 
+                          label=plant, 
+                            # make text bigger
+                            font={'size': 20},
+                            # spread nodes out
+                            scaling={'label': {'enabled': True}},
+                          size=size_n, 
+                          shape="circularImage",
+                          image=get_image_url(plant)))
+############# pick up here
+    # Create edges based on compatibility
+    #for i in range(len(st.session_state.plant_list)):
+    # loop through all plants in raw long list and find the index of the plant in the plant list to get relevant metadata. skip if we are looking at the same plant
+    for i, i_p in enumerate(st.session_state.plant_list):
+        for j, j_p in enumerate(st.session_state.plant_list):
+            if i != j:
+                # check if plants[i] and plants[j]  are in input_plants_raw
+                # print(st.session_state.input_plants_raw)
+                if is_mini == False:
+                    length_e = 300
+                else:
+                    length_e = 100
+
+                if i_p in st.session_state.input_plants_raw and j_p in st.session_state.input_plants_raw:
+                    # use the compatibility matrix and the plant to index mapping to determine the color of the edge
+                    if compatibility_matrix[i][j] == 1:
+                        color = 'green'
+                        edges.append(Edge(source=i_p, target=j_p,width = 3.5, type="CURVE_SMOOTH", color=color, length=length_e))
+                        print(i,j,i_p,j_p,color)
+                    elif compatibility_matrix[i][j] == -1:
+                        color = 'mediumvioletred'
+                        edges.append(Edge(source=i_p, target=j_p,width = 3.5, type="CURVE_SMOOTH", color=color, length=length_e))
+                        print(i,j,i_p,j_p,color)
+
+                    else:
+                        color = 'dimgrey'
+                        edges.append(Edge(source=i_p, target=j_p,width = .2, type="CURVE_SMOOTH", color=color, length=length_e))
+                        print(i,j,i_p,j_p,color)
+
+
+        
+    # Configuration for the graph
+    config = Config(width=650 if not is_mini else 400,
+                    height=650 if not is_mini else 400,
+                    directed=False, 
+                    physics=True, 
+                    hierarchical=False,
+                    nodeHighlightBehavior=True,
+                    highlightColor="#F7A7A6",
+                    collapsible=True,
+                    maxZoom=5,
+                    minZoom=0.2,
+                    initialZoom=4,
+                    )
+
+
+    # Handling for non-mini version
+    if not is_mini:
+        # Create custom legend for edge colors at the top of the page
+        custom_legend = []
+        legend_names = ['Neutral', 'Negative', 'Positive']
+        legend_colors = ['dimgrey', 'mediumvioletred', 'green']
+
+        for name, color in zip(legend_names, legend_colors):
+            custom_legend.append(
+                go.Scatter(
+                    x=[None],
+                    y=[None],
+                    mode='markers',
+                    marker=dict(color=color),
+                    name=name,
+                    showlegend=True,
+                    hoverinfo='none'
+                )
+            )
+
+        # Create layout for custom legend figure
+        legend_layout = go.Layout(
+            title='Plant Compatibility Network Graph',
+            showlegend=True,
+            margin=dict(b=1, t=100),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            height=120,
+            legend=dict(
+                title='Edge Colors',
+                orientation='h',
+                # make it appear above the graph
+                x=-1,
+                y=1.1,
+                bgcolor='rgba(0,0,0,0)'
+            )
+        )
+
+        # Create figure for custom legend
+        legend_fig = go.Figure(data=custom_legend, layout=legend_layout)
+
+        # Render the custom legend using Plotly in Streamlit
+        st.plotly_chart(legend_fig, use_container_width=True)
+
+
+    # Render the graph using streamlit-agraph
+    return_value = agraph(nodes=nodes, 
+                        edges=edges, 
+                        config=config)
+    
+    
