@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
@@ -125,3 +126,19 @@ def get_compatibility_matrix(plant_list):
 
         return None
     
+# get compatability matrix for companion planting via subsetting a hardcoded matrix
+# make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
+plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
+
+def get_compatibility_matrix_2(plant_list):
+
+    # subset the matrix to only include the plants in the user's list
+    plant_compatibility = st.session_state.raw_plant_compatibility.loc[plant_list, plant_list]
+
+    # get list of plants
+    plant_list_subset = plant_compatibility.index.tolist()
+    print(plant_list_subset, plant_list)
+    
+    plant_compatibility  = plant_compatibility .to_numpy()
+    #return the matrix
+    return plant_compatibility

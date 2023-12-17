@@ -15,6 +15,14 @@ from backend.chatbot import *
 from backend.optimization_algo import *
 from frontend.visualizations import *
 
+# import compatibilities matrix
+# make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
+st.session_state.raw_plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
+# fill NaN values with 0
+st.session_state.raw_plant_compatibility = st.session_state.raw_plant_compatibility.fillna(0)
+# get list of plants
+st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tolist()
+
 # setup keys and api info
 file_path = '/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/api_keys/openai_api_keys.txt'
 with open(file_path, 'r') as file:
@@ -164,75 +172,7 @@ if page == "Garden Optimization":
             col1, col2, col3= st.columns([1,2,1])
             with col1:
                 if 'input_plants_raw' not in st.session_state:
-                    input_plants_raw = st.multiselect('plants', ['Apricot',
-                                                        'Apple',
-                                                        'Asparagus',
-                                                        'Basil',
-                                                        'Beans',
-                                                        'Broad Beans',
-                                                        'Bush Beans',
-                                                        'Climbing Beans',
-                                                        'Beets',
-                                                        'Borage',
-                                                        'Broccoli',
-                                                        'Brussel Sprouts',
-                                                        'Cabbages',
-                                                        'Chamomile',
-                                                        'Carrots',
-                                                        'Cauliflower',
-                                                        'Celery',
-                                                        'Cherry',
-                                                        'Chervil',
-                                                        'Chives',
-                                                        'Coriander',
-                                                        'Corn',
-                                                        'Cucumber',
-                                                        'Dill',
-                                                        'Eggplant',
-                                                        'Fennel',
-                                                        'Marigold',
-                                                        'Fruit Trees',
-                                                        'Garlic',
-                                                        'Gooseberry',
-                                                        'Grape Vine',
-                                                        'Grass',
-                                                        'Horseradish',
-                                                        'Lavendar',
-                                                        'Leeks',
-                                                        'Lemon Balm',
-                                                        'Lettuce',
-                                                        'Marjoram',
-                                                        'Mints',
-                                                        'Mulberry',
-                                                        'Mustard',
-                                                        'Nasturtiums',
-                                                        'Onions',
-                                                        'Parsley',
-                                                        'Parsnip',
-                                                        'Peas',
-                                                        'Pennyroyal',
-                                                        'Potato',
-                                                        'Pumpkin',
-                                                        'Radish',
-                                                        'Raspberry',
-                                                        'Rosemary',
-                                                        'Roses',
-                                                        'Rue',
-                                                        'Sage',
-                                                        'Savory',
-                                                        'Shallots',
-                                                        'Silverbeet',
-                                                        'Spinach',
-                                                        'Squash',
-                                                        'Strawberries',
-                                                        'Stinging Nettle',
-                                                        'Sunflower',
-                                                        'Tansy',
-                                                        'Thyme',
-                                                        'Tomato',
-                                                        'Yarrow',
-                                                        'Zucchini',
-                                                        ])
+                    input_plants_raw = st.multiselect('plants', st.session_state.plant_list)
                     if st.button('continue '):
                         st.session_state['input_plants_raw'] = input_plants_raw
             if 'input_plants_raw' in st.session_state:
@@ -242,6 +182,9 @@ if page == "Garden Optimization":
                 chat_message(st.session_state.input_plants_raw, is_user=True)
                 #st.write(plants_response)
                 time.sleep(1)
+                # form to get number of plant beds, min species per plant bed, and max species per plant bed
+                
+
                 chat_message("How many plant beds would you like to have in your garden?")
                 col1, col2, col3= st.columns([1,2,1])
                 with col1:
@@ -282,7 +225,7 @@ if page == "Garden Optimization":
                                 with st.spinner('generating companion plant compatibility matrix...'):
                                     st.session_state['generating_mat'] = True
                                     # now get compatibility matrix for companion planting
-                                    extracted_mat = get_compatibility_matrix(st.session_state.input_plants_raw)
+                                    extracted_mat = get_compatibility_matrix_2(st.session_state.input_plants_raw)
                                     print(extracted_mat)
                                     st.session_state.extracted_mat = extracted_mat
                     if 'extracted_mat' in st.session_state:

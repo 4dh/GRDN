@@ -6,15 +6,38 @@ import numpy as np
 
 def plot_compatibility(plants, compatibility_matrix, is_mini=False):
 
-    # Create the graph
+    # # Create the graph
+    # G = nx.Graph()
+    # G.add_nodes_from(plants)
+    # for i in plants:
+    #     print(i)
+    #     for j in plants:
+    #         print(j)
+    #         if compatibility_matrix[i][j] == 0:
+    #             G.add_edge(plants[i], plants[j], color='dimgrey')
+    #         else:
+    #             G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
+    # create the graph again knowing that the matrix looks like this for example:
+#                     Broad Beans  Beans  Basil  Bush Beans  Climbing Beans
+# Broad Beans             0.0    0.0    0.0         0.0             0.0
+# Beans                   0.0    0.0    0.0         0.0             0.0
+# Basil                   0.0    0.0    0.0         0.0             0.0
+# Bush Beans              0.0    0.0    0.0         0.0             0.0
+# Climbing Beans          0.0    0.0    0.0         0.0             0.0
+
+    # Create the graph but don't include the diagonal. the value of the indices are the plant names
     G = nx.Graph()
     G.add_nodes_from(plants)
     for i in range(len(plants)):
-        for j in range(i + 1, len(plants)):
-            if compatibility_matrix[i][j] == 0:
-                G.add_edge(plants[i], plants[j], color='dimgrey')
-            else:
-                G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
+        for j in range(len(plants)):
+            if i != j:
+                if compatibility_matrix[i][j] == 0:
+                    G.add_edge(plants[i], plants[j], color='dimgrey')
+                else:
+                    G.add_edge(plants[i], plants[j], color='green' if compatibility_matrix[i][j] == 1 else 'mediumvioletred')
+
+
+
 
     # Generate positions for the nodes
     pos = nx.spring_layout(G)
