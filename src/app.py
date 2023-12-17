@@ -56,6 +56,7 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix):
         index = plants.index(plant_name)
         cwd = os.getcwd()
         image_path = os.path.join(cwd, f"assets/plant_images/plant_{index}.png")
+        image_path = "https://phantom-marca.unidadeditorial.es/87e06bac29cef3dd2afe0edc205ac160/resize/1320/f/webp/assets/multimedia/imagenes/2023/06/05/16859534914962.png"
         print(image_path)
         return image_path
 
