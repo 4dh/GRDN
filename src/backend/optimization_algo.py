@@ -3,7 +3,7 @@ import numpy as np
 import streamlit as st
 
 # import all functions from src.backend.chatbot
-from backend.chatbot import *
+from src.backend.chatbot import *
 
 def genetic_algorithm_plants():
     # Define the compatibility matrix

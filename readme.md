@@ -7,7 +7,7 @@ author: Danielle Heymann
 <br/>
 contact: dheymann314@gmail.com
 <br/>
-last updated: 06/20/2023
+last updated: 12/17/2023
 <br/>
 <br/>
 GRDN is an application that allows users to optimize a garden and its plant beds through companion planting, generative AI, and optimization. It is a work in progress. </font>

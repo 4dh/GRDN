@@ -5,20 +5,20 @@ import os
 import time
 import math
 import streamlit as st
-from streamlit_chat import message
+#from streamlit_chat import message
 from streamlit_extras.colored_header import colored_header
 from streamlit_extras.add_vertical_space import add_vertical_space
 from PIL import Image
 
 # import modules
-from backend.chatbot import *
-from backend.optimization_algo import *
-from frontend.visualizations import *
+from src.backend.chatbot import *
+from src.backend.optimization_algo import *
+from src.frontend.visualizations import *
 
 
 # import compatibilities matrix
 # make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
-st.session_state.raw_plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
+st.session_state.raw_plant_compatibility = pd.read_csv('src/data/plant_compatibility.csv', index_col=0)
 # fill NaN values with 0
 st.session_state.raw_plant_compatibility = st.session_state.raw_plant_compatibility.fillna(0)
 # get list of plants
@@ -46,10 +46,10 @@ st.set_page_config(
 # Function to display chat message with an icon
 def chat_message(message, is_user=False):
     if is_user:
-        icon = Image.open("assets/cool.png") 
+        icon = Image.open("src/assets/cool.png") 
         side = "left"
     else:
-        icon = Image.open("assets/bot.png")  
+        icon = Image.open("src/assets/bot.png")  
         side = "right"
     
     chat_container = st.container()
@@ -74,7 +74,7 @@ def chat_message(message, is_user=False):
 
 
 
-st.image ("assets/logo_title_transparent.png", caption=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+st.image ("src/assets/logo_title_transparent.png", caption=None, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
 
 st.write("AI and optimization powered companion gardening")
 colored_header(label='', description='', color_name='green-30')
@@ -294,9 +294,9 @@ if page == "Garden Optimization":
                         st.write("These parameters control the behavior of the genetic algorithm.")
 
                         # Genetic Algorithm parameters
-                        st.session_state.population_size = st.slider("Population Size", min_value=500, max_value=3000, value=550,
+                        st.session_state.population_size = st.slider("Population Size", min_value=400, max_value=1000, value=500,
                                                     help="The number of individuals in each generation of the genetic algorithm.")
-                        st.session_state.num_generations = st.slider("Number of Generations", min_value=100, max_value=1500, value=500,
+                        st.session_state.num_generations = st.slider("Number of Generations", min_value=400, max_value=1000, value=450,
                                                     help="The total number of generations to evolve through.")
                         st.session_state.tournament_size = st.slider("Tournament Size", min_value=5, max_value=20, value=10,
                                                     help="The number of individuals competing in each tournament selection round.")
@@ -310,8 +310,9 @@ if page == "Garden Optimization":
                         # 
                         # Run the genetic algorithm
                         if st.form_submit_button(label='Run Genetic Algorithm'):
-                            grouping = genetic_algorithm_plants()
-                            st.session_state.grouping = grouping
+                            with st.spinner('running genetic algorithm... this may take a minute'):
+                                grouping = genetic_algorithm_plants()
+                                st.session_state.grouping = grouping
 
                 # visualize the groupings
                 # add in some vertical space
@@ -327,7 +328,7 @@ if page == "Garden Optimization":
                             # embed score.png
                             col1b, col2b = st.columns([2,11])
                             with col1b:
-                                st.image("assets/score.png", caption=None, width = 160, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+                                st.image("src/assets/score.png", caption=None, width = 160, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
                             with col2b:
                                 #st.write("\n")
                                 st.header("|  " + str(st.session_state.best_fitness))

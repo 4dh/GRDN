@@ -69,6 +69,7 @@ soupsieve==2.4.1
 SQLAlchemy==2.0.17
 st-annotated-text==4.0.0
 streamlit==1.23.1
+streamlit-agraph==0.0.45
 streamlit-camera-input-live==0.2.0
 streamlit-card==0.0.5
 streamlit-chat==0.1.1

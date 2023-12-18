@@ -147,7 +147,7 @@ def get_compatibility_matrix(plant_list):
     
 # get compatability matrix for companion planting via subsetting a hardcoded matrix
 # make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
-plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
+plant_compatibility = pd.read_csv('src/data/plant_compatibility.csv', index_col=0)
 
 def get_compatibility_matrix_2(plant_list):
 
