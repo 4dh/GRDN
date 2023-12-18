@@ -220,13 +220,14 @@ def visualize_groupings():
     
     grouping_matrices = generate_grouping_matrices(groupings, compatibility_matrix, plant_list)
     for i, submatrix in enumerate(grouping_matrices):
-        col1, col2, col3, col4= st.columns([1,1,1,1])
-        with col2: 
+        col1, col2= st.columns([1,3])
+        with col1: 
             st.write(f"Plant Bed {i + 1}")
             st.write("Plant List")
             st.write(groupings[i])
-        with col3:
-            plot_compatibility_with_agraph(groupings[i], submatrix, is_mini=True)
+        with col2:
+            plot_compatibility_with_agraph(groupings[i], st.session_state.full_mat, is_mini=True)
+
 
 
 def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
@@ -253,7 +254,7 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
                           size=size_n, 
                           shape="circularImage",
                           image=get_image_url(plant)))
-############# pick up here
+
     # Create edges based on compatibility
     #for i in range(len(st.session_state.plant_list)):
     # loop through all plants in raw long list and find the index of the plant in the plant list to get relevant metadata. skip if we are looking at the same plant
@@ -265,7 +266,7 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
                 if is_mini == False:
                     length_e = 300
                 else:
-                    length_e = 100
+                    length_e = 150
 
                 if i_p in st.session_state.input_plants_raw and j_p in st.session_state.input_plants_raw:
                     # use the compatibility matrix and the plant to index mapping to determine the color of the edge
@@ -287,7 +288,7 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
         
     # Configuration for the graph
     config = Config(width=650 if not is_mini else 400,
-                    height=650 if not is_mini else 400,
+                    height=400 if not is_mini else 400,
                     directed=False, 
                     physics=True, 
                     hierarchical=False,

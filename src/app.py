@@ -15,6 +15,7 @@ from backend.chatbot import *
 from backend.optimization_algo import *
 from frontend.visualizations import *
 
+
 # import compatibilities matrix
 # make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
 st.session_state.raw_plant_compatibility = pd.read_csv('data/plant_compatibility.csv', index_col=0)
@@ -26,13 +27,13 @@ st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tol
 
 
 # setup keys and api info
-file_path = '/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/api_keys/openai_api_keys.txt'
-with open(file_path, 'r') as file:
-    OPENAI_API_KEY = file.read()
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+os.environ['REPLICATE_API_TOKEN'] = REPLICATE_API_TOKEN
 
-chat = ChatOpenAI()
+
+
+#chat = ChatOpenAI()
 
 
 # UI page config
@@ -180,7 +181,7 @@ if page == "Garden Optimization":
 
                         # Number of plant beds input
                         with col1:
-                            n_plant_beds = st.number_input('Number of plant beds', min_value=1, max_value=20, value=st.session_state.n_plant_beds, step=1)
+                            n_plant_beds = st.number_input('Number of plant beds \n', min_value=1, max_value=20, value=st.session_state.n_plant_beds, step=1)
                             st.session_state.n_plant_beds = n_plant_beds
                         with col2:
                             # Minimum species per plant bed input
@@ -207,7 +208,7 @@ if page == "Garden Optimization":
                     # extract the compatibility matrix from the user's input
                     if 'extracted_mat' not in st.session_state:
                         valid = False
-                        if st.session_state.submitted_plant_list:
+                        if 'submitted_plant_list' in st.session_state and st.session_state.submitted_plant_list:
                             # check if the user's input is valid
                             # min species per bed must be less than or equal to max species per bed
                             if (st.session_state.min_species <= st.session_state.max_species
@@ -304,7 +305,7 @@ if page == "Garden Optimization":
                                                 help="The probability of two individuals undergoing crossover to create offspring.")
                         st.session_state.mutation_rate = st.slider("Mutation Rate", min_value=0.01, max_value=0.9, step=0.01, value=0.3,
                                                 help="The probability of an individual undergoing mutation.")
-                        st.session_state.seed_population_rate = st.slider("Seed Population Rate", min_value=0.0, max_value=.15, step=0.1, value=0.10, 
+                        st.session_state.seed_population_rate = st.slider("Seed Population Rate", min_value=0.0, max_value=.02, step=0.001, value=0.08, 
                                                                           help="The percentage of the population that is generated based on the LLM's interpretation of compatibility. The remaining percentage of the population is generated randomly.")
                         
                         # 
@@ -317,21 +318,31 @@ if page == "Garden Optimization":
                 # add in some vertical space
                 add_vertical_space(4)
                 # make a container for this section
+                st.title(st.session_state.user_name + "'s optimized garden")
+                st.header("Here are the optimized groupings of plants for your garden")
                 container4 = st.container(border=True)
                 with container4:
-                    st.title("Optimized groupings of plants for your garden")
                     if 'grouping' in st.session_state:
                         visualize_groupings()
+                        if 'best_fitness' in st.session_state:
+                            # embed score.png
+                            col1b, col2b = st.columns([2,11])
+                            with col1b:
+                                st.image("assets/score.png", caption=None, width = 160, use_column_width=None, clamp=False, channels='RGB', output_format='auto')
+                            with col2b:
+                                #st.write("\n")
+                                st.header("|  " + str(st.session_state.best_fitness))
+                            st.write("The genetic algorithm converged towards a solution with a fitness score of " + str(st.session_state.best_fitness) + ".")
+                        # Add vertical space
+                        add_vertical_space(4)
                         # show plant care tips
-                        chat_message("Here are some plant care tips for your plants. Good luck!")
-                        col1, col2, col3= st.columns([1,2,3])
-                        with col3:
-                            with st.spinner('generating plant care tips...'):
+                        st.header("Plant care tips")
+                        with st.spinner('generating plant care tips...'):
+                            st.write("Here are some plant care tips for your plants. Good luck!")
+                            if 'plant_care_tips' not in st.session_state:
                                 st.session_state.plant_care_tips = get_plant_care_tips(st.session_state.input_plants_raw)
                         styled_text = f'<div style="background-color: #2d5a59; color: white; padding: 10px; border-radius: 5px;">{st.session_state.plant_care_tips}</div>'
-                        col1, col2, col3= st.columns([6,10,1])
-                        with col2:
-                            st.write(styled_text, unsafe_allow_html=True)
+                        st.write(styled_text, unsafe_allow_html=True)
 
 
 

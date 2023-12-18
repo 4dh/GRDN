@@ -7,7 +7,9 @@ from backend.chatbot import *
 
 def genetic_algorithm_plants():
     # Define the compatibility matrix
-    compatibility_matrix = st.session_state.extracted_mat
+    compatibility_matrix = st.session_state.full_mat
+    # Define the list of plants
+    plant_list = st.session_state.plant_list
 
     # Define the user-selected plants, number of plant beds, and constraints
     user_plants = st.session_state.input_plants_raw
@@ -124,13 +126,21 @@ def genetic_algorithm_plants():
         positive_reward_factor = 1000  # Adjust this to increase the reward for compatible species
         negative_penalty_factor = 2000  # Adjust this to increase the penalty for incompatible species
 
+        # Define penalties for not meeting constraints
+        penalty_for_exceeding_max = 500  # Adjust as needed
+        penalty_for_not_meeting_min = 500  # Adjust as needed
+        penalty_for_not_having_all_plants = 1000  # Adjust as needed
+
         score = 0
         # Iterate over each plant bed
         for bed in grouping:
             for i in range(len(bed)):
                 for j in range(i + 1, len(bed)):
-                    species1_index = user_plants.index(bed[i])
-                    species2_index = user_plants.index(bed[j])
+                    # get the plant name
+                    species1_name = bed[i]
+                    species2_name = bed[j]
+                    species1_index = plant_list.index(species1_name)
+                    species2_index = plant_list.index(species2_name)
 
                     # Compatibility score between two species in the same bed
                     compatibility_score = compatibility_matrix[species1_index][species2_index]
@@ -142,18 +152,14 @@ def genetic_algorithm_plants():
                         # Negative penalty for incompatible species
                         score += compatibility_score*negative_penalty_factor
 
-        # Additional scoring for separation of incompatible species between different beds
-        for bed1 in range(num_plant_beds):
-            for bed2 in range(bed1 + 1, num_plant_beds):
-                for species1 in grouping[bed1]:
-                    for species2 in grouping[bed2]:
-                        species1_index = user_plants.index(species1)
-                        species2_index = user_plants.index(species2)
 
-                        # Compatibility score between species in different beds
-                        compatibility_score = compatibility_matrix[species1_index][species2_index]
-                        if compatibility_score < 0:
-                            score += compatibility_score * negative_penalty_factor
+        # Apply penalties for not meeting constraints
+        if len(bed) > max_species_per_bed:
+            score -= penalty_for_exceeding_max
+        if len(bed) < min_species_per_bed:
+            score -= penalty_for_not_meeting_min
+        if len(set(plant for bed in grouping for plant in bed)) < len(user_plants):
+            score -= penalty_for_not_having_all_plants
 
         return score
 
@@ -212,37 +218,84 @@ def genetic_algorithm_plants():
         best_fitness = calculate_fitness(best_grouping)
         print(f"Best Grouping: {best_grouping}")
         print(f"Fitness Score: {best_fitness}")
+        st.session_state.best_grouping = best_grouping
+        st.session_state.best_fitness = best_fitness
         # st.write(f"Best Grouping: {best_grouping}")
         # st.write(f"Fitness Score: {best_fitness}")
         return best_grouping
     
-    def validate_and_replace(grouping):
-        print("Grouping structure before validation:", grouping)
-        all_plants = set(user_plants)
-        for bed in grouping:
-            all_plants -= set(bed)
+    # def validate_and_replace(grouping):
+    #     print("Grouping structure before validation:", grouping)
+    #     all_plants = set(user_plants)
+    #     for bed in grouping:
+    #         all_plants -= set(bed)
 
-        # Replace missing plants
-        for missing_plant in all_plants:
-            replaced = False
-            for bed in grouping:
-                if len(set(bed)) != len(bed):  # Check for duplicates
-                    for i, plant in enumerate(bed):
-                        if bed.count(plant) > 1:  # Found a duplicate
-                            bed[i] = missing_plant
-                            replaced = True
-                            break
-                if replaced:
-                    break
+    #     # Replace missing plants
+    #     for missing_plant in all_plants:
+    #         replaced = False
+    #         for bed in grouping:
+    #             if len(set(bed)) != len(bed):  # Check for duplicates
+    #                 for i, plant in enumerate(bed):
+    #                     if bed.count(plant) > 1:  # Found a duplicate
+    #                         bed[i] = missing_plant
+    #                         replaced = True
+    #                         break
+    #             if replaced:
+    #                 break
 
-            # If no duplicates were found, replace a random plant
-            if not replaced:
+    #         # If no duplicates were found, replace a random plant
+    #         if not replaced:
+    #             random_bed = random.choice(grouping)
+    #             random_bed[random.randint(0, len(random_bed) - 1)] = missing_plant
+
+    #     return grouping
+    
+    ############
+    ############ experimental
+
+    def adjust_grouping(grouping):
+    # Determine the plants that are missing in the grouping
+        plants_in_grouping = set(plant for bed in grouping for plant in bed)
+        missing_plants = set(user_plants) - plants_in_grouping
+
+        for missing_plant in missing_plants:
+            # Find a bed that can accommodate the missing plant without exceeding max_species_per_bed
+            suitable_bed = next((bed for bed in grouping if len(bed) < max_species_per_bed), None)
+            if suitable_bed is not None:
+                suitable_bed.append(missing_plant)
+            else:
+                # If no suitable bed is found, replace a random plant in a random bed
                 random_bed = random.choice(grouping)
                 random_bed[random.randint(0, len(random_bed) - 1)] = missing_plant
 
-        return grouping
+        # Ensure min_species_per_bed and max_species_per_bed constraints
+        for bed in grouping:
+            while len(bed) < min_species_per_bed:
+                additional_plant = random.choice([plant for plant in user_plants if plant not in bed])
+                bed.append(additional_plant)
+            while len(bed) > max_species_per_bed:
+                bed.remove(random.choice(bed))
 
+        return grouping
     
+    def validate_and_replace(grouping):
+        best_grouping = None
+        best_fitness = float('-inf')
+
+        for _ in range(5):  # Generate 5 different configurations
+            temp_grouping = [bed.copy() for bed in grouping]
+            temp_grouping = adjust_grouping(temp_grouping)
+            current_fitness = calculate_fitness(temp_grouping)
+
+            if current_fitness > best_fitness:
+                best_fitness = current_fitness
+                best_grouping = temp_grouping
+
+        return best_grouping
+
+
+
+    ############
     def get_language_model_suggestions():
         # Placeholder for your implementation
         # This should return a list of seed groupings based on the compatibility matrix

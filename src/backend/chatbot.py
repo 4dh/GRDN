@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
@@ -8,6 +9,8 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
 )
 
+# set model
+model = 'openai'
 
 def parse_and_evaluate_text(text):
     # Find the indices of the opening and closing brackets
@@ -25,37 +28,53 @@ def parse_and_evaluate_text(text):
         print("Error with parsing plant list")
         return None
     
-def chat_response(template, prompt_text):
-    chat = ChatOpenAI(temperature=.1)
-    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-    human_template="{text}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
-    response = chat(chat_prompt.format_prompt(text= prompt_text).to_messages())
-    return response
+def chat_response(template, prompt_text, model):
+    if model == 'openai':
+        chat = ChatOpenAI(temperature=.1)
+        system_message_prompt = SystemMessagePromptTemplate.from_template(template)
+        human_template="{text}"
+        human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+        chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
+        response = chat(chat_prompt.format_prompt(text= prompt_text).to_messages())
+        return response
+    # elif model == 'Llama2-7B':
+    #     llm = Replicate(
+    #         model="a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5",
+    #         temperature=0.1,
+    #         #context_window=32,
+    #         top_p=0.9,
+    #         repetition_penalty=1.0,
+    #         max_tokens=2000,
+    #         #stop_sequences=["\n\n"],   
+    #         )
+    #     input_prompt = template + prompt_text
+    #     print(input_prompt)
+    #     resp = llm.complete(input_prompt)
+    #     print(resp)
+    #     return resp
+    else:
+        print("Error with chatbot model")
+        return None
 
 # get the plant list from user input
 def get_plant_list(input_plant_text):
-    chat = ChatOpenAI(temperature=.1)
     template="You are a helpful assistant that knows all about gardening and plants and python data structures."
     text = 'which of the elements of this list can be grown in a garden, [' + input_plant_text + ']? Return JUST a python list object containing the elements that can be grown in a garden. Do not include any other text or explanation.'
-    plant_list_text = chat_response(template, text)
+    plant_list_text = chat_response(template, text, model)
     plant_list = parse_and_evaluate_text(plant_list_text.content)
     print(plant_list)
     return plant_list
 
 # get plant care tips based on plant list
 def get_plant_care_tips(plant_list):
-    chat = ChatOpenAI(temperature=.1)
     template="You are a helpful assistant that knows all about gardening, plants, and companion planting."
     text = 'from this list of plants, [' + str(st.session_state.input_plants_raw) + '], generate a list of up to 10 plant care tips or interesting stories of plant compatibility for the plants in the list- maybe 1-2 per plant depending on what you know. Return just the plant care tips in HTML markdown format. Do not include any other text or explanation. It must be in HTML markdown format.'
-    plant_care_tips = chat_response(template, text)
+    plant_care_tips = chat_response(template, text, model)
     print(plant_care_tips.content)
     return plant_care_tips.content
 
 # get compatability matrix for companion planting
 def get_compatibility_matrix(plant_list):
-    chat = ChatOpenAI(temperature=.1)
     # Convert the compatibility matrix to a string
     with open('data/compatibilities_text.txt', 'r') as file:
         # Read the contents of the file
@@ -152,7 +171,6 @@ def get_compatibility_matrix_2(plant_list):
 
 # get plant groupings from LLM
 def get_seed_groupings_from_LLM():
-    chat = ChatOpenAI(temperature=.1)
     template="You are a helpful assistant that only outputs python lists of lists of lists of plants."
     # make sure output is strictly and only a list of lists for one grouping
     text ='''I am working on a gardening project and need to optimally group a set of plants based on their compatibility. Below is the compatibility matrix for the plants, where each value represents how well two plants grow together (positive values indicate good compatibility, negative values indicate poor compatibility). I also have specific constraints for planting: there are a certain number of plant beds (n_plant_beds), each bed can have a minimum of min_species species and a maximum of max_species species. Given these constraints, please suggest several groupings of these plants into n_plant_beds beds, optimizing for overall compatibility.
@@ -171,8 +189,8 @@ def get_seed_groupings_from_LLM():
         '''
 
 
-    plant_groupings = chat_response(template, text)
-    print(plant_groupings.content)
+    plant_groupings = chat_response(template, text, model)
+    print('response about LLMs choice on groupings', plant_groupings.content)
 
     # try to eval the string to a list of lists
     try:
