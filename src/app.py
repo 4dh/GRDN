@@ -28,8 +28,7 @@ st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tol
 
 # setup keys and api info
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
-os.environ['REPLICATE_API_TOKEN'] = REPLICATE_API_TOKEN
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 
 
@@ -377,6 +376,7 @@ if page == "About":
         - github copilot
         - chatGPT
         - GPT family of models
+        - DALL·E 3 (in preprocessing script for image generation)
         """)
         st.write("Data sources in addition to what GPT was trained on: \n https://waldenlabs.com/the-ultimate-companion-planting-guide-chart/ ")
 
