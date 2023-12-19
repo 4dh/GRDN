@@ -8,9 +8,48 @@ from langchain.prompts.chat import (
     AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+from llama_index import (
+    SimpleDirectoryReader,
+    VectorStoreIndex,
+    ServiceContext,
+)
+from llama_index.llms import LlamaCPP
+from llama_index.llms.llama_utils import (
+    messages_to_prompt,
+    completion_to_prompt,
+)
+
 
 # set model
-model = 'openai'
+# model = 'openai'
+model = 'Llama2-7B_CPP'
+
+# set version
+st.session_state.demo_lite = False
+
+# initialize model 
+if st.session_state.demo_lite == False:
+    if model == 'Llama2-7B_CPP':
+        model_path = "/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/GRDN/src/models/llama-2-7b-chat.Q4_K_M.gguf"
+        llm = LlamaCPP(
+            # You can pass in the URL to a GGML model to download it automatically
+            #model_url=model_url,
+            # optionally, you can set the path to a pre-downloaded model instead of model_url
+            model_path=model_path,
+            temperature=0.1,
+            max_new_tokens=1000,
+            # llama2 has a context window of 4096 tokens, but we set it lower to allow for some wiggle room
+            context_window=3000,
+            # kwargs to pass to __call__()
+            generate_kwargs={},
+            # kwargs to pass to __init__()
+            # set to at least 1 to use GPU
+            model_kwargs={"n_gpu_layers": 1},
+            # transform inputs into Llama2 format
+            messages_to_prompt=messages_to_prompt,
+            completion_to_prompt=completion_to_prompt,
+            verbose=True,
+        )
 
 def parse_and_evaluate_text(text):
     # Find the indices of the opening and closing brackets
@@ -37,6 +76,7 @@ def chat_response(template, prompt_text, model):
         chat_prompt = ChatPromptTemplate.from_messages([system_message_prompt, human_message_prompt])
         response = chat(chat_prompt.format_prompt(text= prompt_text).to_messages())
         return response
+        # return response.content
     # elif model == 'Llama2-7B':
     #     llm = Replicate(
     #         model="a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5",
@@ -52,6 +92,9 @@ def chat_response(template, prompt_text, model):
     #     resp = llm.complete(input_prompt)
     #     print(resp)
     #     return resp
+    elif model == 'Llama2-7B_CPP':
+        response = llm.complete(template + prompt_text)
+        return response.text
     else:
         print("Error with chatbot model")
         return None
@@ -67,11 +110,27 @@ def get_plant_list(input_plant_text):
 
 # get plant care tips based on plant list
 def get_plant_care_tips(plant_list):
+    plant_care_tips = ""
     template="You are a helpful assistant that knows all about gardening, plants, and companion planting."
-    text = 'from this list of plants, [' + str(st.session_state.input_plants_raw) + '], generate a list of up to 10 plant care tips or interesting stories of plant compatibility for the plants in the list- maybe 1-2 per plant depending on what you know. Return just the plant care tips in HTML markdown format. Do not include any other text or explanation. It must be in HTML markdown format.'
+    text = 'from this list of plants, [' + str(st.session_state.input_plants_raw) + '], generate a list of up to 10 plant care tips or interesting stories of plant compatibility for the plants in the list- maybe 1-2 per plant depending on what you know. Return just the plant care tips in HTML markdown format. Make sure to use ### for headers. Do not include any other text or explanation before or after the markdown. It must be in HTML markdown format.'
     plant_care_tips = chat_response(template, text, model)
-    print(plant_care_tips.content)
-    return plant_care_tips.content
+    # check to see if response contains ### for headers
+    if "###" not in plant_care_tips:
+        print("Error with parsing plant care tips")
+        # try again up to 5 times
+        for i in range(5):
+            print("Error with parsing plant care tips. Trying for attempt #" + str(i+1))
+            plant_care_tips = chat_response(template, text, model)
+            # check to see if response contains ### for headers
+            if "###" not in plant_care_tips:
+                continue
+            else:
+                break
+    # remove any text before the first ### in the response
+    plant_care_tips = "\n\n" + plant_care_tips[plant_care_tips.find("###"):]
+
+    print(plant_care_tips)
+    return plant_care_tips
 
 # get compatability matrix for companion planting
 def get_compatibility_matrix(plant_list):
@@ -171,6 +230,10 @@ def get_compatibility_matrix_2(plant_list):
 
 # get plant groupings from LLM
 def get_seed_groupings_from_LLM():
+    plant_groupings_evaluated = "no response yet"
+    if st.session_state.demo_lite:
+        # just return "no response yet" for now
+        return plant_groupings_evaluated
     template="You are a helpful assistant that only outputs python lists of lists of lists of plants."
     # make sure output is strictly and only a list of lists for one grouping
     text ='''I am working on a gardening project and need to optimally group a set of plants based on their compatibility. Below is the compatibility matrix for the plants, where each value represents how well two plants grow together (positive values indicate good compatibility, negative values indicate poor compatibility). I also have specific constraints for planting: there are a certain number of plant beds (n_plant_beds), each bed can have a minimum of min_species species and a maximum of max_species species. Given these constraints, please suggest several groupings of these plants into n_plant_beds beds, optimizing for overall compatibility.
@@ -184,17 +247,17 @@ def get_seed_groupings_from_LLM():
         sample output: [['plant1', 'plant2'] #bed1, ['plant3', 'plant4'] #bed2, ['plant1', 'plant3'] #bed3]
         another sample output: [['plant1', 'plant2', 'plant3'] #bed1, ['plant4', 'plant5', 'plant6'] #bed2, ['plant7', 'plant8', 'plant9'] #bed3]
         Note: the number of beds, the number of plants per bed, and the number of plants in the list may vary.
-        Note: only output a python list of lists of plants. Do not include any other text or explanation.
+        Note: only output ONE python list of lists of plants. Do not include any other text or explanation.
 
         '''
 
 
     plant_groupings = chat_response(template, text, model)
-    print('response about LLMs choice on groupings', plant_groupings.content)
+    print('response about LLMs choice on groupings', plant_groupings)
 
     # try to eval the string to a list of lists
     try:
-        plant_groupings_evaluated = eval(plant_groupings.content)
+        plant_groupings_evaluated = eval(plant_groupings)
         # check type of output
         print(type(plant_groupings_evaluated))
         # we expect a list of lists
@@ -203,14 +266,35 @@ def get_seed_groupings_from_LLM():
         # try again up to 5 times
         for i in range(5):
             print("Error with parsing plant groupings. Trying for attempt #" + str(i+1))
-            plant_groupings = chat_response(template, text)
-            print(plant_groupings.content)
+            plant_groupings = chat_response(template, text, model)
+            print(plant_groupings)
             # try to eval the string to a list of lists
             try:
-                plant_groupings_evaluated = eval(plant_groupings.content)
-                break
+                # make sure plant1 is not in the output
+                if 'plant1' in plant_groupings:
+                    print("plant1 is in the output")
+                    continue
+                else:
+                    plant_groupings_evaluated = eval(plant_groupings)
+                    print("successful eval; output: ", plant_groupings_evaluated)
+                    break
             except:
-                print("Error with parsing plant groupings")
-                continue
+                # try to find the list of lists within the string
+                opening_bracket_index = plant_groupings.find("[[")
+                closing_bracket_index = plant_groupings.find("]]")
+                if opening_bracket_index != -1 and closing_bracket_index != -1:
+                    # Extract the text within the brackets
+                    extracted_list = "[" + plant_groupings[opening_bracket_index + 1: closing_bracket_index] + "]]"
+                    # Return the evaluated text list
+                    if 'plant1' in extracted_list:
+                        print("plant1 is in the output")
+                        continue
+                    else:
+                        plant_groupings_evaluated = eval(extracted_list)
+                        print("successful eval; output: ", plant_groupings_evaluated)
+                        break
+                else:
+                    print("Error with parsing plant groupings")
+                    continue
 
     return plant_groupings_evaluated
