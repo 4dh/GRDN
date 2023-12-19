@@ -36,8 +36,9 @@ def genetic_algorithm_plants():
         num_seeds = int(population_size * st.session_state.seed_population_rate)  # 10% of the population as seeds
         # we generate just one seed grouping for this beta language model suggestion feature
         seed_grouping = get_language_model_suggestions()
-        valid_seed_grouping = validate_and_replace(seed_grouping)
-        population.append(valid_seed_grouping)
+        if seed_grouping != "no response yet":
+            valid_seed_grouping = validate_and_replace(seed_grouping)
+            population.append(valid_seed_grouping)
 
 
         # Fill the rest of the population with random groupings, also validated and replaced

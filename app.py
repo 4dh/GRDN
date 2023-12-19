@@ -24,11 +24,12 @@ st.session_state.raw_plant_compatibility = st.session_state.raw_plant_compatibil
 # get list of plants
 st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tolist()
 
-
+# set version
+st.session_state.demo_lite = False
 
 # setup keys and api info
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+# OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+# os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 
 
@@ -98,7 +99,7 @@ page = st.sidebar.selectbox("Select a page:", pages)
 
 if page == "Garden Optimization":
     st.sidebar.subheader("Companion Gardening")
-    st.write("GRDN is a companion gardening app that helps you plan your garden and maximize your harvest. It uses AI to predict the best plants to grow together and optimization algorithms to optimize how you build your garden.")
+    st.write("GRDN is a companion gardening app that helps you plan your garden and maximize your harvest. It uses optimization and AI to predict the best plants to grow together and optimization algorithms to optimize how you build your garden.")
     st.write("This app is currently in beta. Please report any bugs.")
     companion_planting_info = """
     Key Benefits 
@@ -294,9 +295,9 @@ if page == "Garden Optimization":
                         st.write("These parameters control the behavior of the genetic algorithm.")
 
                         # Genetic Algorithm parameters
-                        st.session_state.population_size = st.slider("Population Size", min_value=400, max_value=1000, value=500,
+                        st.session_state.population_size = st.slider("Population Size", min_value=100, max_value=1000, value=500,
                                                     help="The number of individuals in each generation of the genetic algorithm.")
-                        st.session_state.num_generations = st.slider("Number of Generations", min_value=400, max_value=1000, value=450,
+                        st.session_state.num_generations = st.slider("Number of Generations", min_value=100, max_value=1000, value=450,
                                                     help="The total number of generations to evolve through.")
                         st.session_state.tournament_size = st.slider("Tournament Size", min_value=5, max_value=20, value=10,
                                                     help="The number of individuals competing in each tournament selection round.")
@@ -339,10 +340,13 @@ if page == "Garden Optimization":
                         st.header("Plant care tips")
                         with st.spinner('generating plant care tips...'):
                             st.write("Here are some plant care tips for your plants. Good luck!")
-                            if 'plant_care_tips' not in st.session_state:
+                            if st.session_state.demo_lite:
+                                st.session_state.plant_care_tips = "Plant care tips are not available in this lite demo version but will be available in the future! Only the local version of this app has full functionality at this time."
+                            else:
+                                #if 'plant_care_tips' not in st.session_state:
                                 st.session_state.plant_care_tips = get_plant_care_tips(st.session_state.input_plants_raw)
-                        styled_text = f'<div style="background-color: #2d5a59; color: white; padding: 10px; border-radius: 5px;">{st.session_state.plant_care_tips}</div>'
-                        st.write(styled_text, unsafe_allow_html=True)
+                            styled_text = f'<div style="background-color: #2d5a59; color: white; padding: 10px; border-radius: 5px;">{st.session_state.plant_care_tips}</div>'
+                            st.write(styled_text, unsafe_allow_html=True)
 
 
 
@@ -375,10 +379,13 @@ if page == "About":
         - langchain
         - streamlit_chat
         - github copilot
+        - Llama2
+        - HuggingFace
+        - LlamaIndex
         - chatGPT
         - GPT family of models
         - DALL·E 3 (in preprocessing script for image generation)
         """)
-        st.write("Data sources in addition to what GPT was trained on: \n https://waldenlabs.com/the-ultimate-companion-planting-guide-chart/ ")
+        st.write("Data sources in addition to what LLMs were trained on: \n https://waldenlabs.com/the-ultimate-companion-planting-guide-chart/ ")
 
-        st.write("avatars from: https://www.flaticon.com/free-icons/bot")
+        #st.write("avatars from: https://www.flaticon.com/free-icons/bot")
