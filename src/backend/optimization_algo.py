@@ -5,7 +5,7 @@ import streamlit as st
 # import all functions from src.backend.chatbot
 from src.backend.chatbot import *
 
-def genetic_algorithm_plants():
+def genetic_algorithm_plants(model, demo_lite):
     # Define the compatibility matrix
     compatibility_matrix = st.session_state.full_mat
     # Define the list of plants
@@ -29,13 +29,13 @@ def genetic_algorithm_plants():
     seed_population_rate = st.session_state.seed_population_rate 
 
 
-    def generate_initial_population():
+    def generate_initial_population(model, demo_lite):
         population = []
 
         # Add seed groupings to the population, validated and replaced as necessary
         num_seeds = int(population_size * st.session_state.seed_population_rate)  # 10% of the population as seeds
         # we generate just one seed grouping for this beta language model suggestion feature
-        seed_grouping = get_language_model_suggestions()
+        seed_grouping = get_language_model_suggestions(model, demo_lite)
         if seed_grouping != "no response yet":
             valid_seed_grouping = validate_and_replace(seed_grouping)
             population.append(valid_seed_grouping)
@@ -192,8 +192,8 @@ def genetic_algorithm_plants():
         return sorted_population[:population_size - len(adjusted_offspring)] + adjusted_offspring
 
     # Genetic Algorithm main function
-    def genetic_algorithm():
-        population = generate_initial_population()
+    def genetic_algorithm(model, demo_lite):
+        population = generate_initial_population(model, demo_lite)
 
         for generation in range(num_generations):
             print(f"Generation {generation + 1}")
@@ -297,13 +297,13 @@ def genetic_algorithm_plants():
 
 
     ############
-    def get_language_model_suggestions():
-        # Placeholder for your implementation
-        # This should return a list of seed groupings based on the compatibility matrix
-        st.session_state.seed_groupings = get_seed_groupings_from_LLM()
+    def get_language_model_suggestions(model, demo_lite):
+        # This returns a list of seed groupings based on the compatibility matrix
+        st.session_state.seed_groupings = get_seed_groupings_from_LLM(model, demo_lite)
         return st.session_state.seed_groupings
 
 
+    # Run the genetic algorithm
     
-    best_grouping = genetic_algorithm()
+    best_grouping = genetic_algorithm(model, demo_lite)
     return best_grouping
