@@ -7,7 +7,7 @@ author: Danielle Heymann
 <br/>
 contact: dheymann314@gmail.com
 <br/>
-last updated: 06/20/2023
+last updated: 12/17/2023
 <br/>
 <br/>
 GRDN is an application that allows users to optimize a garden and its plant beds through companion planting, generative AI, and optimization. It is a work in progress. </font>
@@ -40,8 +40,9 @@ info
   >*conda create --name=GRDN_env*
 - install dependencies
   >*pip install -r requirements.txt*
-- establish env vars for openai key
-  >**COMING SOON- to be added shortly**
+- download local model and add it to model folder
+  >I used LLama2 7B HF Chat model
+  >https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/blob/main/llama-2-7b-chat.Q4_K_M.gguf
 
 ## Running App
 - navigate to ...GRDN/src
