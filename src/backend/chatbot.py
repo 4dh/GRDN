@@ -18,7 +18,8 @@ from llama_index.llms.llama_utils import (
     messages_to_prompt,
     completion_to_prompt,
 )
-
+import subprocess
+import time
 
 # set version
 # st.session_state.demo_lite = False
@@ -50,7 +51,7 @@ def init_llm(model, demo_lite):
                 generate_kwargs={},
                 # kwargs to pass to __init__()
                 # set to at least 1 to use GPU
-                model_kwargs={"n_gpu_layers": 1},
+                model_kwargs={"n_gpu_layers": 10},
                 # transform inputs into Llama2 format
                 messages_to_prompt=messages_to_prompt,
                 completion_to_prompt=completion_to_prompt,
@@ -113,12 +114,14 @@ def chat_response(template, prompt_text, model, demo_lite):
             [system_message_prompt, human_message_prompt]
         )
         response = chat(chat_prompt.format_prompt(text=prompt_text).to_messages())
+
         return response
         # return response.content
     elif model == "Llama2-7b_CPP" or model == "deci-7b_CPP":
         print("BP 5.1: running full demo, model: ", model)
-        llm = init_llm(model, demo_lite)
-        response = llm.complete(template + prompt_text)
+        if "llm" not in st.session_state:
+            st.session_state.llm = init_llm(model, demo_lite)
+        response = st.session_state.llm.complete(template + prompt_text)
         return response.text
     else:
         print("Error with chatbot model")
@@ -366,6 +369,9 @@ def get_seed_groupings_from_LLM(model, demo_lite):
     )
 
     plant_groupings = chat_response(template, text, model, demo_lite)
+    # check to see if we've cut off the response due to time limit. if so, return "no response yet" for now
+    if plant_groupings == None:
+        return "no response yet"
     print("response about LLMs choice on groupings", plant_groupings)
 
     # try to eval the string to a list of lists

@@ -5,6 +5,7 @@ import streamlit as st
 # import all functions from src.backend.chatbot
 from src.backend.chatbot import *
 
+
 def genetic_algorithm_plants(model, demo_lite):
     # Define the compatibility matrix
     compatibility_matrix = st.session_state.full_mat
@@ -16,9 +17,8 @@ def genetic_algorithm_plants(model, demo_lite):
     num_plant_beds = st.session_state.n_plant_beds
     # 1 <= min_species_per_bed <= max_species_per_bed <= len(user_plants)
     min_species_per_bed = st.session_state.min_species
-    # max_species_per_bed >= floor(length(user_plants)-(min_species_per_bed*num_plant_beds-1) & max_species_per_bed <= len(user_plants)  
+    # max_species_per_bed >= floor(length(user_plants)-(min_species_per_bed*num_plant_beds-1) & max_species_per_bed <= len(user_plants)
     max_species_per_bed = st.session_state.max_species
-
 
     # Genetic Algorithm parameters
     population_size = st.session_state.population_size
@@ -26,20 +26,20 @@ def genetic_algorithm_plants(model, demo_lite):
     tournament_size = st.session_state.tournament_size
     crossover_rate = st.session_state.crossover_rate
     mutation_rate = st.session_state.mutation_rate
-    seed_population_rate = st.session_state.seed_population_rate 
-
+    seed_population_rate = st.session_state.seed_population_rate
 
     def generate_initial_population(model, demo_lite):
         population = []
 
         # Add seed groupings to the population, validated and replaced as necessary
-        num_seeds = int(population_size * st.session_state.seed_population_rate)  # 10% of the population as seeds
+        num_seeds = int(
+            population_size * st.session_state.seed_population_rate
+        )  # 10% of the population as seeds
         # we generate just one seed grouping for this beta language model suggestion feature
         seed_grouping = get_language_model_suggestions(model, demo_lite)
         if seed_grouping != "no response yet":
             valid_seed_grouping = validate_and_replace(seed_grouping)
             population.append(valid_seed_grouping)
-
 
         # Fill the rest of the population with random groupings, also validated and replaced
         while len(population) < population_size:
@@ -48,7 +48,6 @@ def genetic_algorithm_plants(model, demo_lite):
             population.append(valid_random_grouping)
 
         return population
-
 
     def generate_random_grouping():
         random.shuffle(user_plants)
@@ -67,15 +66,15 @@ def genetic_algorithm_plants(model, demo_lite):
                 num_species_in_bed = plants_per_bed
 
             # Ensure the bed size is within the min and max constraints
-            num_species_in_bed = max(min_species_per_bed, min(num_species_in_bed, max_species_per_bed))
+            num_species_in_bed = max(
+                min_species_per_bed, min(num_species_in_bed, max_species_per_bed)
+            )
 
             bed = remaining_plants[:num_species_in_bed]
             remaining_plants = remaining_plants[num_species_in_bed:]
             grouping.append(bed)
 
         return grouping
-
-
 
     # Perform crossover between two parents, preserving at least one occurrence of each plant
     def crossover(parent1, parent2):
@@ -88,17 +87,21 @@ def genetic_algorithm_plants(model, demo_lite):
             for plant in user_plants:
                 if all(plant not in bed for bed in child1):
                     # Find a bed with fewer species and add the missing plant
-                    min_bed_index = min(range(len(child1)), key=lambda i: len(child1[i]))
+                    min_bed_index = min(
+                        range(len(child1)), key=lambda i: len(child1[i])
+                    )
                     child1[min_bed_index].append(plant)
                 if all(plant not in bed for bed in child2):
                     # Find a bed with fewer species and add the missing plant
-                    min_bed_index = min(range(len(child2)), key=lambda i: len(child2[i]))
+                    min_bed_index = min(
+                        range(len(child2)), key=lambda i: len(child2[i])
+                    )
                     child2[min_bed_index].append(plant)
 
             return child1, child2
         else:
             return parent1, parent2
-        
+
     # Perform mutation on an individual, ensuring no bed exceeds the maximum species constraint
     def mutate(individual):
         if random.random() < mutation_rate:
@@ -110,8 +113,12 @@ def genetic_algorithm_plants(model, demo_lite):
                 species_in_bed = random.sample(species_in_bed, max_species_per_bed)
 
             # Add missing plants by performing swaps between current species and missing plants
-            missing_plants = [plant for plant in user_plants if plant not in species_in_bed]
-            num_missing_plants = min(len(missing_plants), max_species_per_bed - len(species_in_bed))
+            missing_plants = [
+                plant for plant in user_plants if plant not in species_in_bed
+            ]
+            num_missing_plants = min(
+                len(missing_plants), max_species_per_bed - len(species_in_bed)
+            )
             for _ in range(num_missing_plants):
                 swap_species = random.choice(missing_plants)
                 missing_plants.remove(swap_species)
@@ -122,18 +129,22 @@ def genetic_algorithm_plants(model, demo_lite):
 
         return individual
 
-    # Calculate the fitness score of the grouping
+    # calculate the fitness score of the grouping
     def calculate_fitness(grouping):
-        positive_reward_factor = 1000  # Adjust this to increase the reward for compatible species
-        negative_penalty_factor = 2000  # Adjust this to increase the penalty for incompatible species
+        positive_reward_factor = (
+            1000  # this can be adjusted to increase the reward for compatible species
+        )
+        negative_penalty_factor = (
+            2000  # this can be adjusted to increase the penalty for incompatible species
+        )
 
-        # Define penalties for not meeting constraints
-        penalty_for_exceeding_max = 500  # Adjust as needed
-        penalty_for_not_meeting_min = 500  # Adjust as needed
-        penalty_for_not_having_all_plants = 1000  # Adjust as needed
+        # define penalties for not meeting constraints
+        penalty_for_exceeding_max = 500  # can adjust as needed
+        penalty_for_not_meeting_min = 500  # can adjust as needed
+        penalty_for_not_having_all_plants = 1000  # can adjust as needed
 
         score = 0
-        # Iterate over each plant bed
+        # iterate over each plant bed
         for bed in grouping:
             for i in range(len(bed)):
                 for j in range(i + 1, len(bed)):
@@ -143,18 +154,19 @@ def genetic_algorithm_plants(model, demo_lite):
                     species1_index = plant_list.index(species1_name)
                     species2_index = plant_list.index(species2_name)
 
-                    # Compatibility score between two species in the same bed
-                    compatibility_score = compatibility_matrix[species1_index][species2_index]
-                    
+                    # compatibility score between two species in the same bed
+                    compatibility_score = compatibility_matrix[species1_index][
+                        species2_index
+                    ]
+
                     if compatibility_score > 0:
-                        # Positive reward for compatible species
-                        score += compatibility_score*positive_reward_factor
+                        # positive reward for compatible species
+                        score += compatibility_score * positive_reward_factor
                     elif compatibility_score < 0:
-                        # Negative penalty for incompatible species
-                        score += compatibility_score*negative_penalty_factor
+                        # negative penalty for incompatible species
+                        score += compatibility_score * negative_penalty_factor
 
-
-        # Apply penalties for not meeting constraints
+        # apply penalties for not meeting constraints
         if len(bed) > max_species_per_bed:
             score -= penalty_for_exceeding_max
         if len(bed) < min_species_per_bed:
@@ -163,8 +175,7 @@ def genetic_algorithm_plants(model, demo_lite):
             score -= penalty_for_not_having_all_plants
 
         return score
-
-
+    
     # Perform tournament selection
     def tournament_selection(population):
         selected = []
@@ -189,7 +200,10 @@ def genetic_algorithm_plants(model, demo_lite):
                 individual[bed_idx] = species_in_bed
             adjusted_offspring.append(individual)
 
-        return sorted_population[:population_size - len(adjusted_offspring)] + adjusted_offspring
+        return (
+            sorted_population[: population_size - len(adjusted_offspring)]
+            + adjusted_offspring
+        )
 
     # Genetic Algorithm main function
     def genetic_algorithm(model, demo_lite):
@@ -213,7 +227,6 @@ def genetic_algorithm_plants(model, demo_lite):
             # Validate and replace any missing plants in the new population
             population = [validate_and_replace(grouping) for grouping in population]
 
-
         best_grouping = max(population, key=calculate_fitness)
         best_grouping = validate_and_replace(best_grouping)
         best_fitness = calculate_fitness(best_grouping)
@@ -224,7 +237,7 @@ def genetic_algorithm_plants(model, demo_lite):
         # st.write(f"Best Grouping: {best_grouping}")
         # st.write(f"Fitness Score: {best_fitness}")
         return best_grouping
-    
+
     # def validate_and_replace(grouping):
     #     print("Grouping structure before validation:", grouping)
     #     all_plants = set(user_plants)
@@ -250,18 +263,20 @@ def genetic_algorithm_plants(model, demo_lite):
     #             random_bed[random.randint(0, len(random_bed) - 1)] = missing_plant
 
     #     return grouping
-    
+
     ############
     ############ experimental
 
     def adjust_grouping(grouping):
-    # Determine the plants that are missing in the grouping
+        # Determine the plants that are missing in the grouping
         plants_in_grouping = set(plant for bed in grouping for plant in bed)
         missing_plants = set(user_plants) - plants_in_grouping
 
         for missing_plant in missing_plants:
             # Find a bed that can accommodate the missing plant without exceeding max_species_per_bed
-            suitable_bed = next((bed for bed in grouping if len(bed) < max_species_per_bed), None)
+            suitable_bed = next(
+                (bed for bed in grouping if len(bed) < max_species_per_bed), None
+            )
             if suitable_bed is not None:
                 suitable_bed.append(missing_plant)
             else:
@@ -272,16 +287,18 @@ def genetic_algorithm_plants(model, demo_lite):
         # Ensure min_species_per_bed and max_species_per_bed constraints
         for bed in grouping:
             while len(bed) < min_species_per_bed:
-                additional_plant = random.choice([plant for plant in user_plants if plant not in bed])
+                additional_plant = random.choice(
+                    [plant for plant in user_plants if plant not in bed]
+                )
                 bed.append(additional_plant)
             while len(bed) > max_species_per_bed:
                 bed.remove(random.choice(bed))
 
         return grouping
-    
+
     def validate_and_replace(grouping):
         best_grouping = None
-        best_fitness = float('-inf')
+        best_fitness = float("-inf")
 
         for _ in range(5):  # Generate 5 different configurations
             temp_grouping = [bed.copy() for bed in grouping]
@@ -294,16 +311,13 @@ def genetic_algorithm_plants(model, demo_lite):
 
         return best_grouping
 
-
-
     ############
     def get_language_model_suggestions(model, demo_lite):
         # This returns a list of seed groupings based on the compatibility matrix
         st.session_state.seed_groupings = get_seed_groupings_from_LLM(model, demo_lite)
         return st.session_state.seed_groupings
 
-
     # Run the genetic algorithm
-    
+
     best_grouping = genetic_algorithm(model, demo_lite)
     return best_grouping
