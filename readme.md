@@ -47,9 +47,9 @@ info
 - install dependencies
   >*pip install -r requirements.txt*
 - download local models and add them to model folder
-  >I used LLama2 7B HF Chat model and DeciLM 7B instruct model
-  >https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/blob/main/llama-2-7b-chat.Q4_K_M.gguf
-  >https://huggingface.co/Deci/DeciLM-7B-instruct-GGUF/tree/main
+  >I used LLama2 7B HF Chat model and DeciLM 7B instruct model  <br>
+  >https://huggingface.co/TheBloke/Llama-2-7B-Chat-GGUF/blob/main/llama-2-7b-chat.Q4_K_M.gguf  <br>
+  >https://huggingface.co/Deci/DeciLM-7B-instruct-GGUF/tree/main  <br>
 
 ## Running App
 - navigate to ...GRDN/src
