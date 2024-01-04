@@ -81,6 +81,12 @@ info
 ### Data sources in addition to what GPT was trained on: https://waldenlabs.com/the-ultimate-companion-planting-guide-chart/
 ### avatars from: https://www.flaticon.com/free-icons/bot
 
+## Citing this project
+If you use GRDN AI code or ideas in your project or research, please cite it as follows (IEEE style): <br>
+**D. Heymann, "GRDN AI: Companion Planting Optimization App," 2024. [Online]. Available: https://github.com/4dh/GRDN, https://huggingface.co/spaces/danidanidani/GRDN.AI.3. [Accessed: Day-Month-Year].**
+
+
+
 
 
 
