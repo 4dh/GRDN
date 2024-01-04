@@ -1,7 +1,7 @@
 # README
 <br/>
 <br/>
-<font size = "18"> GRDN 🌱</font>
+<font size = "18"> GRDN AI 🌱</font>
 <br/>
 author: Danielle Heymann
 <br/>
@@ -10,7 +10,7 @@ contact: dheymann314@gmail.com
 last updated: 12/31/2023
 <br/>
 <br/>
-GRDN is an application that allows users to optimize a garden and its plant beds through companion planting, generative AI, and optimization. It is a work in progress. </font>
+GRDN AI is an application that allows users to optimize a garden and its plant beds through companion planting, generative AI, and optimization. It is a work in progress. </font>
 <br/>
 <br/>
 Note: this is in beta and is in experimentation mode. 
