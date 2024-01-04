@@ -15,7 +15,9 @@ GRDN AI is an application that allows users to optimize a garden and its plant b
 <br/>
 Note: this is in beta and is in experimentation mode. 
 <br/>
-
+try out the beta app on HuggingFace: https://huggingface.co/spaces/danidanidani/GRDN.AI.3
+<br/>
+<br/>
 ## Background
 info
 <br>
@@ -85,8 +87,8 @@ info
 If you use GRDN AI code or ideas in your project or research, please cite it as follows (IEEE style): <br>
 **D. Heymann, "GRDN AI: Companion Planting Optimization App," 2024. [Online]. Available: https://github.com/4dh/GRDN, https://huggingface.co/spaces/danidanidani/GRDN.AI.3. [Accessed: Day-Month-Year].**
 
-
-
+## Related Blog post on Medium
+I wrote a blog that dives into some of the core tech: https://medium.com/@dheymann314/ai-infused-optimization-in-the-wild-developing-a-companion-planting-app-357e5da29d10
 
 
 
