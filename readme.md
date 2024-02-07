@@ -18,6 +18,7 @@ Note: this is in beta and is in experimentation mode.
 try out the beta app on HuggingFace: https://huggingface.co/spaces/danidanidani/GRDN.AI.3
 <br/>
 <br/>
+
 ## Background
 info
 <br>
