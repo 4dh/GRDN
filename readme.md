@@ -39,7 +39,7 @@ info
 <br>
 
 ## Tech Stack
-![app5](src/assets/GRDN_AI_techstack.png)
+![app6](src/assets/GRDN_AI_techstack.png)
 <br>
 <br>
 
