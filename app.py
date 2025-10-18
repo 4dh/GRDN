@@ -32,7 +32,7 @@ st.session_state.plant_list = st.session_state.raw_plant_compatibility.index.tol
 # set version
 st.session_state.demo_lite = False
 # set default model
-st.session_state.model = "Llama2-7b_CPP"
+st.session_state.model = "Llama3.2-1b_CPP"
 
 # setup keys and api info
 # OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -140,17 +140,32 @@ if page == "Garden Optimization":
     st.sidebar.write("\n\n\n")
     st.sidebar.write("\n\n\n")
 
+    # Display GPU status
+    from src.backend.chatbot import detect_gpu_and_environment
+    env_config = detect_gpu_and_environment()
+    if env_config["gpu_available"]:
+        st.sidebar.success(f"🚀 GPU Acceleration: ENABLED")
+        if env_config["is_hf_space"]:
+            st.sidebar.info("Running on HuggingFace Spaces with Nvidia T4")
+    else:
+        st.sidebar.warning("⚠️ GPU Acceleration: DISABLED (CPU mode)")
+
     st.sidebar.subheader("LLM agent base model")
-    # radio buttons for LLM used throughout the app ('openai', 'Llama2-7b_CPP', 'deci-7b-CPP')
+    # radio buttons for LLM used throughout the app
     st.session_state.model = st.sidebar.radio(
         "Select an open-source LLM :",
         (
-            #'openai-gpt35turbo',
-            "Llama2-7b_CPP",
-            "deci-7b_CPP",
+            "Llama3.2-1b_CPP ⚡ NEW & FASTEST",
+            "Qwen2.5-7b_CPP ⭐ (need to download)",
+            "Llama2-7b_CPP (legacy)",
+            "deci-7b_CPP (legacy)",
             "lite_demo (no LLM)",
         ),
     )
+    
+    # Strip the labels for internal use
+    if "⭐" in st.session_state.model or "⚡" in st.session_state.model or "(legacy)" in st.session_state.model:
+        st.session_state.model = st.session_state.model.split()[0]
     # # radio buttons for optimization algorithm used throughout the app ('constrained_genetic_algorithm', 'constrained_community_detection_mip')
     # st.session_state.optimization_algo = st.radio("Select an optimization algorithm :", (
     #     'constrained_genetic_algorithm',

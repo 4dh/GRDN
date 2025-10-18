@@ -30,14 +30,121 @@ import time
 print("BP 4 ")
 
 
-# initialize model- get 11m depending on st.session_state.demo_lite, and model
+# GPU detection and environment configuration
+def detect_gpu_and_environment():
+    """
+    Detect if GPU is available and if running on HuggingFace Spaces
+    Returns: dict with gpu_available, is_hf_space, and n_gpu_layers
+    """
+    config = {
+        "gpu_available": False,
+        "is_hf_space": False,
+        "n_gpu_layers": 0,
+        "model_base_path": "/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/GRDN/src/models"
+    }
+    
+    # Check if running on HuggingFace Spaces
+    if os.environ.get("SPACE_ID") or os.environ.get("SPACE_AUTHOR_NAME"):
+        config["is_hf_space"] = True
+        config["model_base_path"] = "src/models"  # HF Spaces path
+        print("🤗 Running on HuggingFace Spaces")
+    
+    # Try to detect GPU using torch
+    try:
+        import torch
+        if torch.cuda.is_available():
+            config["gpu_available"] = True
+            gpu_name = torch.cuda.get_device_name(0)
+            gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
+            config["n_gpu_layers"] = -1  # -1 means offload all layers to GPU
+            print(f"🚀 GPU detected: {gpu_name} with {gpu_memory:.2f} GB memory")
+            print(f"🚀 Will offload all layers to GPU (n_gpu_layers=-1)")
+        else:
+            print("⚠️ No GPU detected via torch.cuda")
+            config["n_gpu_layers"] = 0
+    except ImportError:
+        print("⚠️ torch not available, checking alternative methods...")
+        # Alternative: check nvidia-smi or environment variables
+        if os.path.exists("/usr/bin/nvidia-smi") or os.environ.get("CUDA_VISIBLE_DEVICES"):
+            config["gpu_available"] = True
+            config["n_gpu_layers"] = -1  # Offload all layers
+            print("🚀 GPU likely available (nvidia-smi or CUDA env detected)")
+        else:
+            config["n_gpu_layers"] = 0
+    
+    # If on HF Spaces but GPU not detected via torch, still try GPU layers
+    if config["is_hf_space"] and not config["gpu_available"]:
+        print("🤗 On HF Spaces - attempting GPU acceleration anyway")
+        config["gpu_available"] = True
+        config["n_gpu_layers"] = -1
+    
+    return config
+
+
+# initialize model- get llm depending on st.session_state.demo_lite, and model
 def init_llm(model, demo_lite):
     # st.write("BP 4.1: model: ", model)
     if demo_lite == False:
         print("BP 5 : running full demo")
-        if model == "Llama2-7b_CPP":
-            model_path = "/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/GRDN/src/models/llama-2-7b-chat.Q4_K_M.gguf"
+        
+        # Detect GPU and environment
+        env_config = detect_gpu_and_environment()
+        n_gpu_layers = env_config["n_gpu_layers"]
+        model_base_path = env_config["model_base_path"]
+        
+        if env_config["gpu_available"]:
+            print(f"✅ GPU acceleration ENABLED with {n_gpu_layers} layers")
+        else:
+            print("⚠️ Running on CPU (no GPU detected)")
+        
+        if model == "Qwen2.5-7b_CPP":
+            model_path = os.path.join(model_base_path, "Qwen2.5-7B-Instruct-Q5_K_M.gguf")
             print("model path: ", model_path)
+            
+            # Check if model exists, if not and on HF, provide helpful message
+            if not os.path.exists(model_path) and env_config["is_hf_space"]:
+                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
+                print(f"❌ Model file not found: {model_path}")
+                return None
+            
+            llm = LlamaCPP(
+                model_path=model_path,
+                temperature=0.1,
+                max_new_tokens=1500,  # Increased for longer responses
+                context_window=8192,  # Qwen supports up to 128K, but 8K is enough for our use case
+                generate_kwargs={},
+                model_kwargs={"n_gpu_layers": n_gpu_layers},
+                verbose=True,
+            )
+        elif model == "Llama3.2-1b_CPP":
+            model_path = os.path.join(model_base_path, "Llama-3.2-1B-Instruct-Q4_K_M.gguf")
+            print("model path: ", model_path)
+            
+            # Check if model exists, if not and on HF, provide helpful message
+            if not os.path.exists(model_path) and env_config["is_hf_space"]:
+                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
+                print(f"❌ Model file not found: {model_path}")
+                return None
+            
+            llm = LlamaCPP(
+                model_path=model_path,
+                temperature=0.1,
+                max_new_tokens=1500,
+                context_window=8192,  # Llama 3.2 supports 128K context
+                generate_kwargs={},
+                model_kwargs={"n_gpu_layers": n_gpu_layers},
+                verbose=True,
+            )
+        elif model == "Llama2-7b_CPP":
+            model_path = os.path.join(model_base_path, "llama-2-7b-chat.Q4_K_M.gguf")
+            print("model path: ", model_path)
+            
+            # Check if model exists, if not and on HF, provide helpful message
+            if not os.path.exists(model_path) and env_config["is_hf_space"]:
+                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
+                print(f"❌ Model file not found: {model_path}")
+                return None
+            
             llm = LlamaCPP(
                 # You can pass in the URL to a GGML model to download it automatically
                 # model_url=model_url,
@@ -50,16 +157,23 @@ def init_llm(model, demo_lite):
                 # kwargs to pass to __call__()
                 generate_kwargs={},
                 # kwargs to pass to __init__()
-                # set to at least 1 to use GPU
-                model_kwargs={"n_gpu_layers": 10},
+                # set to at least 1 to use GPU, -1 to use all layers on GPU
+                model_kwargs={"n_gpu_layers": n_gpu_layers},
                 # transform inputs into Llama2 format
                 messages_to_prompt=messages_to_prompt,
                 completion_to_prompt=completion_to_prompt,
                 verbose=True,
             )
         elif model == "deci-7b_CPP":
-            model_path = "/Users/dheym/Library/CloudStorage/OneDrive-Personal/Documents/side_projects/GRDN/src/models/decilm-7b-uniform-gqa-q8_0.gguf"
+            model_path = os.path.join(model_base_path, "decilm-7b-uniform-gqa-q8_0.gguf")
             print("model path: ", model_path)
+            
+            # Check if model exists, if not and on HF, provide helpful message
+            if not os.path.exists(model_path) and env_config["is_hf_space"]:
+                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
+                print(f"❌ Model file not found: {model_path}")
+                return None
+            
             llm = LlamaCPP(
                 # You can pass in the URL to a GGML model to download it automatically
                 # model_url=model_url,
@@ -73,8 +187,8 @@ def init_llm(model, demo_lite):
                 # kwargs to pass to __call__()
                 generate_kwargs={},
                 # kwargs to pass to __init__()
-                # set to at least 1 to use GPU
-                model_kwargs={"n_gpu_layers": 1},
+                # set to at least 1 to use GPU, -1 to use all layers on GPU
+                model_kwargs={"n_gpu_layers": n_gpu_layers},
                 # transform inputs into Llama2 format
                 # messages_to_prompt=messages_to_prompt,
                 # completion_to_prompt=completion_to_prompt,
