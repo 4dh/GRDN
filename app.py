@@ -1,7 +1,11 @@
+# Fix OMP_NUM_THREADS BEFORE any imports
+import os
+if os.environ.get('OMP_NUM_THREADS', '').endswith('m'):
+    os.environ['OMP_NUM_THREADS'] = '4'
+
 # import libraries
 import pandas as pd
 import numpy as np
-import os
 import time
 import math
 import streamlit as st
@@ -15,7 +19,6 @@ from PIL import Image
 from src.backend.chatbot import *
 from src.backend.optimization_algo import *
 from src.frontend.visualizations import *
-
 
 # import compatibilities matrix
 # make plant_compatibility.csv into a matrix. it currently has indexes as rows and columns for plant names and then compatibility values as the values
@@ -44,7 +47,7 @@ st.session_state.model = "Llama3.2-1b_CPP"
 
 # UI page config
 st.set_page_config(
-    # page_title="GRDN.AI",
+    page_title="GRDN.AI - Companion Gardening Optimizer",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -88,11 +91,7 @@ def chat_message(message, is_user=False):
 
 st.image(
     "src/assets/logo_title_transparent.png",
-    caption=None,
-    use_column_width=None,
-    clamp=False,
-    channels="RGB",
-    output_format="auto",
+    use_container_width=True,
 )
 
 st.write("AI and optimization powered companion gardening")
@@ -141,7 +140,6 @@ if page == "Garden Optimization":
     st.sidebar.write("\n\n\n")
 
     # Display GPU status
-    from src.backend.chatbot import detect_gpu_and_environment
     env_config = detect_gpu_and_environment()
     if env_config["gpu_available"]:
         st.sidebar.success(f"🚀 GPU Acceleration: ENABLED")
@@ -155,13 +153,15 @@ if page == "Garden Optimization":
     st.session_state.model = st.sidebar.radio(
         "Select an open-source LLM :",
         (
-            "Llama3.2-1b_CPP ⚡ NEW & FASTEST",
-            "Qwen2.5-7b_CPP ⭐ (need to download)",
-            "Llama2-7b_CPP (legacy)",
-            "deci-7b_CPP (legacy)",
+            "Llama3.2-1b_CPP ⚡ ACTIVE",
             "lite_demo (no LLM)",
         ),
     )
+    
+    st.sidebar.caption("Legacy models (disabled):")
+    st.sidebar.text("❌ Llama2-7b (too large)")
+    st.sidebar.text("❌ Qwen2.5-7b (too large)")
+    st.sidebar.text("❌ deci-7b (too large)")
     
     # Strip the labels for internal use
     if "⭐" in st.session_state.model or "⚡" in st.session_state.model or "(legacy)" in st.session_state.model:
@@ -190,7 +190,7 @@ if page == "Garden Optimization":
     add_vertical_space(2)
 
     # make a container for this section
-    container1 = st.container(border=True)
+    container1 = st.container()
 
     with container1:
         # Modify the user_name variable based on user input
@@ -372,7 +372,7 @@ if page == "Garden Optimization":
         # add a title for the next section- companion plant compatibility matrix based on user input
         st.title("Your companion plant compatibility matrix")
         # make a container for this section
-        container2 = st.container(border=True)
+        container2 = st.container()
         with container2:
             col1, col2 = st.columns([8, 4])
             # display the companion plant compatibility matrix
@@ -385,7 +385,7 @@ if page == "Garden Optimization":
                     "Here is a network visualization of your companion plant compatibility matrix. It is color coded to show which plants are companions (green), antagonists (violetred), or neutral (grey)."
                 )
                 plot_compatibility_with_agraph(
-                    st.session_state.input_plants_raw, st.session_state.full_mat
+                    st.session_state.input_plants_raw, st.session_state.full_mat, key_suffix="main"
                 )
                 st.session_state["got_mat"] = True
 
@@ -393,7 +393,7 @@ if page == "Garden Optimization":
             # add in some vertical space
             add_vertical_space(4)
             # make a container for this section
-            container3 = st.container(border=True)
+            container3 = st.container()
             with container3:
                 st.title(
                     "Optimizing companion planting with the genetic algorithm and AI"
@@ -504,7 +504,7 @@ if page == "Garden Optimization":
                 # make a container for this section
                 st.title(st.session_state.user_name + "'s optimized garden")
                 st.header("Here are the optimized groupings of plants for your garden")
-                container4 = st.container(border=True)
+                container4 = st.container()
                 with container4:
                     if "grouping" in st.session_state:
                         visualize_groupings()
@@ -514,12 +514,7 @@ if page == "Garden Optimization":
                             with col1b:
                                 st.image(
                                     "src/assets/score.png",
-                                    caption=None,
                                     width=160,
-                                    use_column_width=None,
-                                    clamp=False,
-                                    channels="RGB",
-                                    output_format="auto",
                                 )
                             with col2b:
                                 # st.write("\n")
@@ -566,11 +561,7 @@ if page == "About":
 
     st.image(
         "src/assets/GRDN_AI_techstack_.png",
-        caption=None,
-        use_column_width=None,
-        clamp=False,
-        channels="RGB",
-        output_format="auto",
+        use_container_width=True,
     )
 
     add_vertical_space(4)
