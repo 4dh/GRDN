@@ -91,7 +91,7 @@ def chat_message(message, is_user=False):
 
 st.image(
     "src/assets/logo_title_transparent.png",
-    use_container_width=True,
+    use_column_width=True,
 )
 
 st.write("AI and optimization powered companion gardening")
@@ -561,7 +561,7 @@ if page == "About":
 
     st.image(
         "src/assets/GRDN_AI_techstack_.png",
-        use_container_width=True,
+        use_column_width=True,
     )
 
     add_vertical_space(4)
