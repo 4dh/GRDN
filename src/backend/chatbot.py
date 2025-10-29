@@ -1,25 +1,39 @@
 import streamlit as st
 import pandas as pd
 import os
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
-from llama_index import (
-    SimpleDirectoryReader,
-    VectorStoreIndex,
-    ServiceContext,
-)
-from llama_index.llms import LlamaCPP
-from llama_index.llms.llama_utils import (
-    messages_to_prompt,
-    completion_to_prompt,
-)
 import subprocess
 import time
+
+# Lazy imports - only load when actually needed (saves 5-10 seconds on startup)
+def _lazy_import_llm_libs():
+    """Import heavy LLM libraries only when needed"""
+    global ChatOpenAI, ChatPromptTemplate, SystemMessagePromptTemplate
+    global AIMessagePromptTemplate, HumanMessagePromptTemplate
+    global SimpleDirectoryReader, VectorStoreIndex
+    global LlamaCPP, messages_to_prompt, completion_to_prompt
+    
+    from langchain_community.chat_models import ChatOpenAI
+    from langchain_core.prompts.chat import (
+        ChatPromptTemplate,
+        SystemMessagePromptTemplate,
+        AIMessagePromptTemplate,
+        HumanMessagePromptTemplate,
+    )
+    from llama_index.core import (
+        SimpleDirectoryReader,
+        VectorStoreIndex,
+    )
+    from llama_index.llms.llama_cpp import LlamaCPP
+    
+    # Try to import prompt utilities (may not exist in newer versions)
+    try:
+        from llama_index.llms.llama_cpp.llama_utils import (
+            messages_to_prompt,
+            completion_to_prompt,
+        )
+    except ImportError:
+        messages_to_prompt = None
+        completion_to_prompt = None
 
 # set version
 # st.session_state.demo_lite = False
@@ -46,7 +60,7 @@ def detect_gpu_and_environment():
     # Check if running on HuggingFace Spaces
     if os.environ.get("SPACE_ID") or os.environ.get("SPACE_AUTHOR_NAME"):
         config["is_hf_space"] = True
-        config["model_base_path"] = "src/models"  # HF Spaces path
+        config["model_base_path"] = "/home/user/app/src/models"  # HF Spaces absolute path
         print("🤗 Running on HuggingFace Spaces")
     
     # Try to detect GPU using torch
@@ -87,6 +101,9 @@ def init_llm(model, demo_lite):
     if demo_lite == False:
         print("BP 5 : running full demo")
         
+        # Load heavy LLM libraries now (lazy import)
+        _lazy_import_llm_libs()
+        
         # Detect GPU and environment
         env_config = detect_gpu_and_environment()
         n_gpu_layers = env_config["n_gpu_layers"]
@@ -97,106 +114,29 @@ def init_llm(model, demo_lite):
         else:
             print("⚠️ Running on CPU (no GPU detected)")
         
-        if model == "Qwen2.5-7b_CPP":
-            model_path = os.path.join(model_base_path, "Qwen2.5-7B-Instruct-Q5_K_M.gguf")
-            print("model path: ", model_path)
-            
-            # Check if model exists, if not and on HF, provide helpful message
-            if not os.path.exists(model_path) and env_config["is_hf_space"]:
-                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
-                print(f"❌ Model file not found: {model_path}")
-                return None
-            
-            llm = LlamaCPP(
-                model_path=model_path,
-                temperature=0.1,
-                max_new_tokens=1500,  # Increased for longer responses
-                context_window=8192,  # Qwen supports up to 128K, but 8K is enough for our use case
-                generate_kwargs={},
-                model_kwargs={"n_gpu_layers": n_gpu_layers},
-                verbose=True,
-            )
-        elif model == "Llama3.2-1b_CPP":
-            model_path = os.path.join(model_base_path, "Llama-3.2-1B-Instruct-Q4_K_M.gguf")
-            print("model path: ", model_path)
-            
-            # Check if model exists, if not and on HF, provide helpful message
-            if not os.path.exists(model_path) and env_config["is_hf_space"]:
-                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
-                print(f"❌ Model file not found: {model_path}")
-                return None
-            
-            llm = LlamaCPP(
-                model_path=model_path,
-                temperature=0.1,
-                max_new_tokens=1500,
-                context_window=8192,  # Llama 3.2 supports 128K context
-                generate_kwargs={},
-                model_kwargs={"n_gpu_layers": n_gpu_layers},
-                verbose=True,
-            )
-        elif model == "Llama2-7b_CPP":
-            model_path = os.path.join(model_base_path, "llama-2-7b-chat.Q4_K_M.gguf")
-            print("model path: ", model_path)
-            
-            # Check if model exists, if not and on HF, provide helpful message
-            if not os.path.exists(model_path) and env_config["is_hf_space"]:
-                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
-                print(f"❌ Model file not found: {model_path}")
-                return None
-            
-            llm = LlamaCPP(
-                # You can pass in the URL to a GGML model to download it automatically
-                # model_url=model_url,
-                # optionally, you can set the path to a pre-downloaded model instead of model_url
-                model_path=model_path,
-                temperature=0.1,
-                max_new_tokens=1000,
-                # llama2 has a context window of 4096 tokens, but we set it lower to allow for some wiggle room
-                context_window=3000,
-                # kwargs to pass to __call__()
-                generate_kwargs={},
-                # kwargs to pass to __init__()
-                # set to at least 1 to use GPU, -1 to use all layers on GPU
-                model_kwargs={"n_gpu_layers": n_gpu_layers},
-                # transform inputs into Llama2 format
-                messages_to_prompt=messages_to_prompt,
-                completion_to_prompt=completion_to_prompt,
-                verbose=True,
-            )
-        elif model == "deci-7b_CPP":
-            model_path = os.path.join(model_base_path, "decilm-7b-uniform-gqa-q8_0.gguf")
-            print("model path: ", model_path)
-            
-            # Check if model exists, if not and on HF, provide helpful message
-            if not os.path.exists(model_path) and env_config["is_hf_space"]:
-                st.error(f"⚠️ Model not found at {model_path}. Please ensure the model file is uploaded to your HuggingFace Space.")
-                print(f"❌ Model file not found: {model_path}")
-                return None
-            
-            llm = LlamaCPP(
-                # You can pass in the URL to a GGML model to download it automatically
-                # model_url=model_url,
-                # optionally, you can set the path to a pre-downloaded model instead of model_url
-                model_path=model_path,
-                # model_url = "https://huggingface.co/Deci/DeciLM-7B-instruct-GGUF/resolve/main/decilm-7b-uniform-gqa-q8_0.gguf",
-                temperature=0.1,
-                max_new_tokens=1000,
-                # llama2 has a context window of 4096 tokens, but we set it lower to allow for some wiggle room
-                context_window=3000,
-                # kwargs to pass to __call__()
-                generate_kwargs={},
-                # kwargs to pass to __init__()
-                # set to at least 1 to use GPU, -1 to use all layers on GPU
-                model_kwargs={"n_gpu_layers": n_gpu_layers},
-                # transform inputs into Llama2 format
-                # messages_to_prompt=messages_to_prompt,
-                # completion_to_prompt=completion_to_prompt,
-                verbose=True,
-            )
-        else:
-            print("Error with chatbot model")
+        # Only Llama 3.2-1B is supported (legacy models removed for simplicity)
+        model_path = os.path.join(model_base_path, "Llama-3.2-1B-Instruct-Q4_K_M.gguf")
+        print(f"Loading Llama 3.2-1B from: {model_path}")
+        
+        # Check if model exists
+        if not os.path.exists(model_path):
+            error_msg = f"⚠️ Model not found at {model_path}"
+            if env_config["is_hf_space"]:
+                error_msg += ". Please ensure the model file is uploaded to your HuggingFace Space."
+            st.error(error_msg)
+            print(f"❌ {error_msg}")
             return None
+        
+        # Initialize Llama 3.2-1B with GPU support
+        llm = LlamaCPP(
+            model_path=model_path,
+            temperature=0.1,
+            max_new_tokens=1500,
+            context_window=8192,  # Llama 3.2 supports 128K context
+            generate_kwargs={},
+            model_kwargs={"n_gpu_layers": n_gpu_layers},
+            verbose=True,
+        )
         return llm
 
 
@@ -231,15 +171,15 @@ def chat_response(template, prompt_text, model, demo_lite):
 
         return response
         # return response.content
-    elif model == "Llama2-7b_CPP" or model == "deci-7b_CPP":
-        print("BP 5.1: running full demo, model: ", model)
+    else:
+        # Use Llama 3.2-1B (only supported model)
+        print("Using Llama 3.2-1B")
         if "llm" not in st.session_state:
             st.session_state.llm = init_llm(model, demo_lite)
+        if st.session_state.llm is None:
+            return "Error: Could not initialize LLM. Please check the logs."
         response = st.session_state.llm.complete(template + prompt_text)
         return response.text
-    else:
-        print("Error with chatbot model")
-        return None
 
 
 # # get the plant list from user input
@@ -262,22 +202,16 @@ def get_plant_care_tips(plant_list, model, demo_lite):
         + "], generate 1-2 plant care tips for each plant based on what you know. Return just the plant care tips in HTML markdown format. Make sure to use ### for headers. Do not include any other text or explanation before or after the markdown. It must be in HTML markdown format."
     )
 
-    if model == "deci-7b_CPP":
-        template = (
-            "### System: \n\n You are a helpful assistant that knows all about gardening, plants, and companion planting."
-            + "\n\n ### User: Generate gardening tips. Return just the plant care tips in HTML markdown format. Make sure to use ### for headers. Do not include any other text or explanation before or after the markdown. It must be in HTML markdown format. \n\n"
-        )
-        text = "### Assistant: \n\n"
-        print("deci-7b_CPP")
     plant_care_tips = chat_response(template, text, model, demo_lite)
     # check to see if response contains ### or < for headers
     print("BP6", plant_care_tips)
     # st.write(plant_care_tips)
-    if (
-        "###" not in plant_care_tips
-        and "<" not in plant_care_tips
-        and model != "deci-7b_CPP"
-    ):  # deci-7b_CPP has more general plant care tips
+    
+    # Safety check for None response
+    if plant_care_tips is None:
+        return "Error: Could not generate plant care tips. Please try again or select a different model."
+    
+    if "###" not in plant_care_tips and "<" not in plant_care_tips:
         st.write(plant_care_tips)
         print("Error with parsing plant care tips")
         # try again up to 5 times

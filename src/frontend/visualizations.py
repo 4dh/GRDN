@@ -231,11 +231,11 @@ def visualize_groupings():
             st.write(groupings[i])
         with col2:
             plot_compatibility_with_agraph(
-                groupings[i], st.session_state.full_mat, is_mini=True
+                groupings[i], st.session_state.full_mat, is_mini=True, key_suffix=f"bed_{i}"
             )
 
 
-def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
+def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False, key_suffix=""):
     # Create nodes and edges for the graph
     nodes = []
     edges = []
@@ -383,4 +383,6 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False):
         st.plotly_chart(legend_fig, use_container_width=True)
 
     # Render the graph using streamlit-agraph
+    # Add unique markdown to force different widget IDs
+    st.markdown(f"<!-- graph_{key_suffix} -->", unsafe_allow_html=True)
     return_value = agraph(nodes=nodes, edges=edges, config=config)
