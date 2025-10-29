@@ -166,4 +166,4 @@ secrets.toml
 
 # large language model files
 models/
-```
+src/models/*.gguf
