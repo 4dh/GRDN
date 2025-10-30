@@ -330,12 +330,6 @@ def plot_compatibility_with_agraph(plants, compatibility_matrix, is_mini=False, 
         directed=False,
         physics=True,
         hierarchical=False,
-        nodeHighlightBehavior=True,
-        highlightColor="#F7A7A6",
-        collapsible=True,
-        maxZoom=5,
-        minZoom=0.2,
-        initialZoom=4,
     )
 
     # Handling for non-mini version
