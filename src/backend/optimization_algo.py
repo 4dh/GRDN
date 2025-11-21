@@ -27,6 +27,12 @@ def genetic_algorithm_plants(model, demo_lite):
     crossover_rate = st.session_state.crossover_rate
     mutation_rate = st.session_state.mutation_rate
     seed_population_rate = st.session_state.seed_population_rate
+    
+    # OPTIMIZATION: Create plant name to index mapping for O(1) lookups
+    plant_to_index = {plant: idx for idx, plant in enumerate(plant_list)}
+    
+    # OPTIMIZATION: Fitness cache to avoid recalculating fitness for the same grouping
+    fitness_cache = {}
 
     def generate_initial_population(model, demo_lite):
         population = []
@@ -131,6 +137,11 @@ def genetic_algorithm_plants(model, demo_lite):
 
     # calculate the fitness score of the grouping
     def calculate_fitness(grouping):
+        # OPTIMIZATION: Create a hashable key for caching
+        grouping_key = tuple(tuple(sorted(bed)) for bed in grouping)
+        if grouping_key in fitness_cache:
+            return fitness_cache[grouping_key]
+        
         positive_reward_factor = (
             1000  # this can be adjusted to increase the reward for compatible species
         )
@@ -151,8 +162,9 @@ def genetic_algorithm_plants(model, demo_lite):
                     # get the plant name
                     species1_name = bed[i]
                     species2_name = bed[j]
-                    species1_index = plant_list.index(species1_name)
-                    species2_index = plant_list.index(species2_name)
+                    # OPTIMIZATION: Use dict lookup instead of list.index() - O(1) vs O(n)
+                    species1_index = plant_to_index[species1_name]
+                    species2_index = plant_to_index[species2_name]
 
                     # compatibility score between two species in the same bed
                     compatibility_score = compatibility_matrix[species1_index][
@@ -174,45 +186,59 @@ def genetic_algorithm_plants(model, demo_lite):
         if len(set(plant for bed in grouping for plant in bed)) < len(user_plants):
             score -= penalty_for_not_having_all_plants
 
+        # OPTIMIZATION: Cache the result
+        fitness_cache[grouping_key] = score
         return score
     
     # Perform tournament selection
-    def tournament_selection(population):
+    def tournament_selection(population, population_fitness):
+        # OPTIMIZATION: Use pre-calculated fitness scores
         selected = []
         for _ in range(population_size):
-            participants = random.sample(population, tournament_size)
-            winner = max(participants, key=calculate_fitness)
-            selected.append(winner)
+            participants_idx = random.sample(range(len(population)), tournament_size)
+            winner_idx = max(participants_idx, key=lambda idx: population_fitness[idx])
+            selected.append(population[winner_idx])
         return selected
 
     # Perform replacement of the population with the offspring, ensuring maximum species constraint is met
-    def replacement(population, offspring):
-        sorted_population = sorted(population, key=calculate_fitness, reverse=True)
-        sorted_offspring = sorted(offspring, key=calculate_fitness, reverse=True)
-
+    def replacement(population, offspring, population_fitness):
+        # OPTIMIZATION: Use pre-calculated fitness and avoid re-sorting
+        # Calculate fitness for offspring only once
+        offspring_fitness = [calculate_fitness(ind) for ind in offspring]
+        
         # Adjust the offspring to meet the maximum species constraint
         adjusted_offspring = []
-        for individual in sorted_offspring:
+        adjusted_fitness = []
+        for idx, individual in enumerate(offspring):
             for bed_idx in range(num_plant_beds):
                 species_in_bed = individual[bed_idx]
                 if len(species_in_bed) > max_species_per_bed:
                     species_in_bed = random.sample(species_in_bed, max_species_per_bed)
                 individual[bed_idx] = species_in_bed
             adjusted_offspring.append(individual)
-
-        return (
-            sorted_population[: population_size - len(adjusted_offspring)]
-            + adjusted_offspring
-        )
+            adjusted_fitness.append(offspring_fitness[idx])
+        
+        # Combine population and offspring with their fitness scores
+        combined = list(zip(population + adjusted_offspring, population_fitness + adjusted_fitness))
+        # Sort by fitness and take top population_size individuals
+        combined.sort(key=lambda x: x[1], reverse=True)
+        
+        new_population = [ind for ind, _ in combined[:population_size]]
+        new_fitness = [fit for _, fit in combined[:population_size]]
+        
+        return new_population, new_fitness
 
     # Genetic Algorithm main function
     def genetic_algorithm(model, demo_lite):
         population = generate_initial_population(model, demo_lite)
+        
+        # OPTIMIZATION: Calculate fitness once for initial population
+        population_fitness = [calculate_fitness(ind) for ind in population]
 
         for generation in range(num_generations):
             print(f"Generation {generation + 1}")
 
-            selected_population = tournament_selection(population)
+            selected_population = tournament_selection(population, population_fitness)
             offspring = []
 
             for _ in range(population_size // 2):
@@ -223,13 +249,32 @@ def genetic_algorithm_plants(model, demo_lite):
                 child2 = mutate(child2)
                 offspring.extend([child1, child2])
 
-            population = replacement(population, offspring)
-            # Validate and replace any missing plants in the new population
-            population = [validate_and_replace(grouping) for grouping in population]
+            # OPTIMIZATION: Pass fitness and get updated fitness back
+            population, population_fitness = replacement(population, offspring, population_fitness)
+            
+            # OPTIMIZATION: Only validate every N generations or at the end, not every single generation
+            # This was the BIGGEST bottleneck - validate_and_replace generates 5 configs per individual!
+            if generation % 10 == 0 or generation == num_generations - 1:
+                # Only validate a subset if population is large
+                validated_count = 0
+                for i in range(len(population)):
+                    # Quick check if validation is needed
+                    plants_in_grouping = set(plant for bed in population[i] for plant in bed)
+                    if len(plants_in_grouping) != len(user_plants):
+                        population[i] = validate_and_replace(population[i])
+                        population_fitness[i] = calculate_fitness(population[i])
+                        validated_count += 1
+                if validated_count > 0:
+                    print(f"  Validated {validated_count} individuals")
 
-        best_grouping = max(population, key=calculate_fitness)
+        # Find best solution
+        best_idx = max(range(len(population)), key=lambda i: population_fitness[i])
+        best_grouping = population[best_idx]
+        
+        # Final validation of best solution only
         best_grouping = validate_and_replace(best_grouping)
         best_fitness = calculate_fitness(best_grouping)
+        
         print(f"Best Grouping: {best_grouping}")
         print(f"Fitness Score: {best_fitness}")
         st.session_state.best_grouping = best_grouping
@@ -297,10 +342,12 @@ def genetic_algorithm_plants(model, demo_lite):
         return grouping
 
     def validate_and_replace(grouping):
+        # OPTIMIZATION: Reduced from 5 to 2 configurations - much faster
+        # Most groupings are already valid, so we don't need to try so many options
         best_grouping = None
         best_fitness = float("-inf")
 
-        for _ in range(5):  # Generate 5 different configurations
+        for _ in range(2):  # Generate 2 different configurations (reduced from 5)
             temp_grouping = [bed.copy() for bed in grouping]
             temp_grouping = adjust_grouping(temp_grouping)
             current_fitness = calculate_fitness(temp_grouping)
