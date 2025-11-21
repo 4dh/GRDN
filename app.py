@@ -1,9 +1,5 @@
-# Fix OMP_NUM_THREADS BEFORE any imports
-import os
-if os.environ.get('OMP_NUM_THREADS', '').endswith('m'):
-    os.environ['OMP_NUM_THREADS'] = '4'
-
 # import libraries
+import os
 import pandas as pd
 import numpy as np
 import time
